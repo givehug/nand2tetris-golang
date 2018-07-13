@@ -35,3 +35,15 @@ func PathInfo(path string) (name, dir string, isFile bool) {
 	isFile = !isDir
 	return
 }
+
+// FilterNewLines filters out new line chars
+func FilterNewLines(s string) string {
+	return strings.Map(func(r rune) rune {
+		switch r {
+		case 0x000A, 0x000B, 0x000C, 0x000D, 0x0085, 0x2028, 0x2029:
+			return -1
+		default:
+			return r
+		}
+	}, s)
+}

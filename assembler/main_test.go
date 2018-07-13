@@ -3,9 +3,9 @@ package assembler
 import (
 	"fmt"
 	"io/ioutil"
+	"nand2tetris-golang/common/utils"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"testing"
 )
@@ -42,22 +42,11 @@ func TestOuput(t *testing.T) {
 				t.Error(err)
 			}
 
-			if filterNewLines(string(a)) != filterNewLines(string(b)) {
+			if utils.FilterNewLines(string(a)) != utils.FilterNewLines(string(b)) {
 				t.Error("Error processing file", f)
 			}
 		}(i, f)
 	}
 
 	wg.Wait()
-}
-
-func filterNewLines(s string) string {
-	return strings.Map(func(r rune) rune {
-		switch r {
-		case 0x000A, 0x000B, 0x000C, 0x000D, 0x0085, 0x2028, 0x2029:
-			return -1
-		default:
-			return r
-		}
-	}, s)
 }
