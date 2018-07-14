@@ -42,7 +42,7 @@ func TestOuput(t *testing.T) {
 				t.Error(err)
 			}
 
-			if utils.FilterNewLines(string(a)) != utils.FilterNewLines(string(b)) {
+			if !utils.CompareStrings(string(a), string(b)) {
 				t.Error("Error processing file", f)
 			}
 		}(i, f)

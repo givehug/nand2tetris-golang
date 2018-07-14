@@ -2,6 +2,7 @@ package tokenizer
 
 import (
 	"nand2tetris-golang/common/parser"
+	"nand2tetris-golang/common/utils"
 	"strings"
 )
 
@@ -93,11 +94,11 @@ func GetTokens(sourceFile string) []Token {
 				t = ""
 			} else if _, in := symbols[t]; in && (t != "/" || newChar != '*') {
 				// is symbol (not / followed by * as block cocmment)
-				tokenList = append(tokenList, Token{t, TokenTypeKeyword})
+				tokenList = append(tokenList, Token{t, TokenTypeSymbol})
 				t = ""
 			} else if isString(t) {
-				// is string
-				tokenList = append(tokenList, Token{t, TokenTypeStringConstant})
+				// is string, append excluding double quotes
+				tokenList = append(tokenList, Token{t[1 : len(t)-1], TokenTypeStringConstant})
 				t = ""
 			} else if isIdentifier(t) && !isNonFirstCharOfIdentifier(newChar) {
 				// is identifier
@@ -124,6 +125,23 @@ func GetTokens(sourceFile string) []Token {
 	}
 
 	return tokenList
+}
+
+// ToXML generates tokens xml
+func ToXML(tList []Token) string {
+	eol := "\n"
+	tokens := ""
+	length := len(tList)
+
+	for i, t := range tList {
+		nl := eol
+		if i == length-1 {
+			nl = ""
+		}
+		tokens += utils.ToXML(t.T, t.S, true) + nl
+	}
+
+	return "<tokens>" + eol + tokens + eol + "</tokens>"
 }
 
 func isInt(s string) bool {

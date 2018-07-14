@@ -36,8 +36,8 @@ func PathInfo(path string) (name, dir string, isFile bool) {
 	return
 }
 
-// FilterNewLines filters out new line chars
-func FilterNewLines(s string) string {
+// filterNewLines filters out new line chars
+func filterNewLines(s string) string {
 	return strings.Map(func(r rune) rune {
 		switch r {
 		case 0x000A, 0x000B, 0x000C, 0x000D, 0x0085, 0x2028, 0x2029:
@@ -48,12 +48,30 @@ func FilterNewLines(s string) string {
 	}, s)
 }
 
+// CompareStrings two strings ignoring whitespaces,
+// returns true if equal
+func CompareStrings(a, b string) bool {
+	return filterNewLines(a) == filterNewLines(b)
+}
+
+func normalizeSymbol(s string) string {
+	m := map[string]string{
+		"<": "&lt;",
+		">": "&gt;",
+		"&": "&amp;",
+	}
+	if v, in := m[s]; in {
+		return v
+	}
+	return s
+}
+
 // ToXML creates xml tag
 func ToXML(tag, val string, inline bool) string {
 	open := "<" + tag + ">"
 	close := "</" + tag + ">"
 	if inline {
-		return open + " " + val + " " + close
+		return open + " " + normalizeSymbol(val) + " " + close
 	}
-	return open + "\n  " + val + "\n" + close
+	return open + "\n  " + normalizeSymbol(val) + "\n" + close
 }

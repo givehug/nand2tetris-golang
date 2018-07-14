@@ -8,5 +8,7 @@ import (
 
 func main() {
 	path := os.Args[1]
-	fmt.Println(tokenizer.GetTokens(path))
+	xml := tokenizer.ToXML(tokenizer.GetTokens(path))
+
+	fmt.Println(xml)
 }
