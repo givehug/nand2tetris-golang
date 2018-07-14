@@ -2,9 +2,9 @@ package parsetree
 
 // ParseTree ...
 type ParseTree struct {
-	t        string
-	value    string
-	children []*ParseTree
+	t        string       // leaf type string constant
+	value    string       // leaf value
+	children []*ParseTree // leaf children
 }
 
 // New constructs new ParseTree

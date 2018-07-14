@@ -1,4 +1,4 @@
-package analizer
+package analyzer
 
 import (
 	"nand2tetris-golang/common/parsetree"
@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestAnalizerToXML(t *testing.T) {
+func TestAnalyzerToXML(t *testing.T) {
 	root := parsetree.New("root", "")
 	child2 := parsetree.New("child2", "")
 	child2.AddChildren(

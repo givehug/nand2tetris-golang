@@ -64,8 +64,8 @@ var symbols = map[string]bool{
 
 // Token ...
 type Token struct {
-	S string
-	T string
+	S string // token string value
+	T string // token type constant
 }
 
 // GetTokens parses file and returns a list of Tokens

@@ -1,4 +1,4 @@
-package analizer
+package analyzer
 
 import (
 	pt "nand2tetris-golang/common/parsetree"
@@ -21,19 +21,19 @@ const (
 	RuleTypeStatements     = "statements"
 )
 
-// Analizer type
-type Analizer struct {
+// Analyzer type
+type Analyzer struct {
 	ti int                // current token index
 	tl *[]tokenizer.Token // token list
 }
 
-// New returns new Analizer
-func New(tl *[]tokenizer.Token) *Analizer {
-	return &Analizer{-1, tl}
+// New returns new Analyzer
+func New(tl *[]tokenizer.Token) *Analyzer {
+	return &Analyzer{-1, tl}
 }
 
 // CompileClass ...
-func (a *Analizer) CompileClass() *pt.ParseTree {
+func (a *Analyzer) CompileClass() *pt.ParseTree {
 	// Grammar: 'class' className '{' classVarDec* subroutineDec* '}'
 	leaf := pt.New(RuleTypeClass, "")
 
@@ -63,7 +63,7 @@ func (a *Analizer) CompileClass() *pt.ParseTree {
 	return leaf
 }
 
-func (a *Analizer) compileClassVarDec() *pt.ParseTree {
+func (a *Analyzer) compileClassVarDec() *pt.ParseTree {
 	// Grammar: ('static' | 'field') type varName (',' varName)* ';'
 	leaf := pt.New(RuleTypeClassVarDec, "")
 
@@ -90,7 +90,7 @@ func (a *Analizer) compileClassVarDec() *pt.ParseTree {
 	return leaf
 }
 
-func (a *Analizer) compileClassSubroutineDec() *pt.ParseTree {
+func (a *Analyzer) compileClassSubroutineDec() *pt.ParseTree {
 	// Grammar: ("constructor" | "function" | "method") ('void' | type)
 	// subroutineName '(' parameterList ')' subroutineBody
 	leaf := pt.New(RuleTypeSubroutineDec, "")
@@ -116,7 +116,7 @@ func (a *Analizer) compileClassSubroutineDec() *pt.ParseTree {
 	return leaf
 }
 
-func (a *Analizer) compileParameterList() *pt.ParseTree {
+func (a *Analyzer) compileParameterList() *pt.ParseTree {
 	// Grammar: ((type varName)(',' type varName)*)?
 	leaf := pt.New(RuleTypeParameterList, "")
 
@@ -141,7 +141,7 @@ func (a *Analizer) compileParameterList() *pt.ParseTree {
 	return leaf
 }
 
-func (a *Analizer) compileSubroutineBody() *pt.ParseTree {
+func (a *Analyzer) compileSubroutineBody() *pt.ParseTree {
 	// Grammar: '{' varDec* statements '}'
 	leaf := pt.New(RuleTypeSubroutineBody, "")
 
@@ -168,7 +168,7 @@ func (a *Analizer) compileSubroutineBody() *pt.ParseTree {
 }
 
 // TODO
-func (a *Analizer) compileStatements() *pt.ParseTree {
+func (a *Analyzer) compileStatements() *pt.ParseTree {
 	// Grammar: statement*
 	leaf := pt.New(RuleTypeStatements, "")
 
@@ -177,7 +177,7 @@ func (a *Analizer) compileStatements() *pt.ParseTree {
 	return leaf
 }
 
-func (a *Analizer) compileVarDec() *pt.ParseTree {
+func (a *Analyzer) compileVarDec() *pt.ParseTree {
 	// Grammar: 'var' type varName (',' varName)* ';'
 	leaf := pt.New(RuleTypeVarDec, "")
 
@@ -204,19 +204,19 @@ func (a *Analizer) compileVarDec() *pt.ParseTree {
 	return leaf
 }
 
-func (a *Analizer) getCurrentToken() tokenizer.Token {
+func (a *Analyzer) getCurrentToken() tokenizer.Token {
 	t := *a.tl
 	return t[a.ti]
 }
 
-func (a *Analizer) getNextToken() tokenizer.Token {
+func (a *Analyzer) getNextToken() tokenizer.Token {
 	t := *a.tl
 	return t[a.ti+1]
 }
 
 // increment ti, return currentToken if valid, panic if not
 // one of provided rules should pass
-func (a *Analizer) eat(rules ...vld.Rule) string {
+func (a *Analyzer) eat(rules ...vld.Rule) string {
 	a.ti++
 	s := a.getCurrentToken().S
 	for _, r := range rules {

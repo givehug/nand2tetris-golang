@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"nand2tetris-golang/compiler/analizer"
+	"nand2tetris-golang/compiler/analyzer"
 	"nand2tetris-golang/compiler/tokenizer"
 	"os"
 )
@@ -17,7 +17,7 @@ func main() {
 	fmt.Println()
 
 	// parse tree
-	a := analizer.New(&tokens)
+	a := analyzer.New(&tokens)
 	tree := a.CompileClass()
-	fmt.Println(analizer.ToXML(tree, 0))
+	fmt.Println(analyzer.ToXML(tree, 0))
 }
