@@ -3,6 +3,7 @@ package tokenizer
 import (
 	"nand2tetris-golang/common/parser"
 	"nand2tetris-golang/common/utils"
+	"nand2tetris-golang/compiler/validators"
 	"strings"
 )
 
@@ -96,19 +97,19 @@ func GetTokens(sourceFile string) []Token {
 				// is symbol (not / followed by * as block cocmment)
 				tokenList = append(tokenList, Token{t, TokenTypeSymbol})
 				t = ""
-			} else if isString(t) {
+			} else if validators.IsString(t) {
 				// is string, append excluding double quotes
 				tokenList = append(tokenList, Token{t[1 : len(t)-1], TokenTypeStringConstant})
 				t = ""
-			} else if isIdentifier(t) && !isNonFirstCharOfIdentifier(newChar) {
+			} else if validators.IsIdentifier(t) && !validators.IsNonFirstCharOfIdentifier(newChar) {
 				// is identifier
 				tokenList = append(tokenList, Token{t, TokenTypeIdentifier})
 				t = ""
-			} else if isInt(t) && (newChar < '0' || newChar > '9') {
+			} else if validators.IsInt(t) && (newChar < '0' || newChar > '9') {
 				// is int
 				tokenList = append(tokenList, Token{t, TokenTypeIntConstant})
 				t = ""
-			} else if isBlockComment(t) {
+			} else if validators.IsBlockComment(t) {
 				// is block comment, remove
 				t = ""
 			}
@@ -142,49 +143,4 @@ func ToXML(tList []Token) string {
 	}
 
 	return "<tokens>" + eol + tokens + eol + "</tokens>"
-}
-
-func isInt(s string) bool {
-	if len(s) == 0 {
-		return false
-	}
-	for _, r := range s {
-		if r < '0' || r > '9' {
-			return false
-		}
-	}
-	return true
-}
-
-func isIdentifier(s string) bool {
-	if len(s) == 0 {
-		return false
-	}
-	for i, r := range s {
-		if i == 0 && (r >= '0' && r <= '9') {
-			return false
-		}
-		if !isNonFirstCharOfIdentifier(r) {
-			return false
-		}
-	}
-	return true
-}
-
-func isNonFirstCharOfIdentifier(r rune) bool {
-	if (r < 'a' || r > 'z') &&
-		(r < 'A' || r > 'Z') &&
-		(r < '0' || r > '9') &&
-		r != '_' {
-		return false
-	}
-	return true
-}
-
-func isString(s string) bool {
-	return len(s) > 1 && strings.HasPrefix(s, "\"") && strings.HasSuffix(s, "\"")
-}
-
-func isBlockComment(s string) bool {
-	return len(s) > 3 && strings.HasPrefix(s, "/*") && strings.HasSuffix(s, "*/")
 }

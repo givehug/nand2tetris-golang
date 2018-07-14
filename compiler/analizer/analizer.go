@@ -3,6 +3,7 @@ package analizer
 import (
 	"nand2tetris-golang/common/parsetree"
 	"nand2tetris-golang/compiler/tokenizer"
+	"nand2tetris-golang/compiler/validators"
 	"strings"
 )
 
@@ -35,25 +36,24 @@ func (a *Analizer) currentToken() tokenizer.Token {
 }
 
 // increment ti, check if rule is met
-func (a *Analizer) eat(rule string) {
+func (a *Analizer) eat(rule validators.Rule) string {
 	*a.ti++
-	t := a.currentToken()
-	if t.S != rule {
-		panic("bad eat: " + rule + " - " + t.S + " - " + t.T)
-	}
+	s := a.currentToken().S
+	return validators.Validate(s, rule)
 }
 
 // CompileClass ...
 func (a *Analizer) CompileClass() *parsetree.ParseTree {
-	a.eat("class")
-	a.pt.AddChildren(parsetree.New(RuleTypeKeyword, "class"))
-	// todo get class name
-	a.eat("{")
-	a.pt.AddChildren(parsetree.New(RuleTypeSymbol, "{"))
+	// class keyword
+	a.pt.AddChildren(parsetree.New(RuleTypeKeyword, a.eat(validators.Identity("class"))))
+	// class name
+	a.pt.AddChildren(parsetree.New(RuleTypeIdentifier, a.eat(validators.IsIdentifier)))
+	// open curl
+	a.pt.AddChildren(parsetree.New(RuleTypeSymbol, a.eat(validators.Identity("{"))))
 	// todo get class var dec
 	// todo get class subroutine dec
-	a.eat("}")
-	a.pt.AddChildren(parsetree.New(RuleTypeSymbol, "}"))
+	// close curl
+	a.pt.AddChildren(parsetree.New(RuleTypeSymbol, a.eat(validators.Identity("}"))))
 
 	return a.pt
 }
