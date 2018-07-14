@@ -23,6 +23,11 @@ func (p *ParseTree) Children() []*ParseTree {
 	return p.children
 }
 
+// HasChildren ...
+func (p *ParseTree) HasChildren() bool {
+	return len(p.children) > 0
+}
+
 // SetValue ...
 func (p *ParseTree) SetValue(s string) {
 	p.value = s

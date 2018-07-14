@@ -7,15 +7,6 @@ import (
 // Rule type
 type Rule func(s string) bool
 
-// Validate returns string if valid, panics if not
-func Validate(s string, r Rule) string {
-	if r(s) == false {
-		panic("rule not met: " + s + " | ") // todo return error
-		// utils.GetFunctionName(r) // todo cannot compile this
-	}
-	return s
-}
-
 // Rules:
 
 // IsInt ...
@@ -72,5 +63,17 @@ func IsBlockComment(s string) bool {
 func Identity(a string) Rule {
 	return func(b string) bool {
 		return a == b
+	}
+}
+
+// Or returns Rule that compares string to one of the options
+func OneOf(options ...string) Rule {
+	return func(s string) bool {
+		for _, o := range options {
+			if o == s {
+				return true
+			}
+		}
+		return false
 	}
 }
