@@ -47,3 +47,13 @@ func FilterNewLines(s string) string {
 		}
 	}, s)
 }
+
+// ToXML creates xml tag
+func ToXML(tag, val string, inline bool) string {
+	open := "<" + tag + ">"
+	close := "</" + tag + ">"
+	if inline {
+		return open + " " + val + " " + close
+	}
+	return open + "\n  " + val + "\n" + close
+}
