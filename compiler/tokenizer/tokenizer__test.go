@@ -167,7 +167,6 @@ func TestTokenizerToXML(t *testing.T) {
 	for _, f := range files {
 		xml := ToXML(GetTokens(f + ".jack"))
 		comp, _ := ioutil.ReadFile(f + "T.xml")
-		// fmt.Println(xml)
 		if !utils.CompareStrings(xml, string(comp)) {
 			t.Error("bad xml " + f)
 		}

@@ -56,9 +56,10 @@ func CompareStrings(a, b string) bool {
 
 func normalizeSymbol(s string) string {
 	m := map[string]string{
-		"<": "&lt;",
-		">": "&gt;",
-		"&": "&amp;",
+		"<":  "&lt;",
+		">":  "&gt;",
+		"&":  "&amp;",
+		"\"": "&quot;",
 	}
 	if v, in := m[s]; in {
 		return v
