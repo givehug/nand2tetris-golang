@@ -66,7 +66,7 @@ func Identity(a string) Rule {
 	}
 }
 
-// Or returns Rule that compares string to one of the options
+// OneOf returns Rule that compares string to one of the options
 func OneOf(options ...string) Rule {
 	return func(s string) bool {
 		for _, o := range options {
@@ -75,5 +75,12 @@ func OneOf(options ...string) Rule {
 			}
 		}
 		return false
+	}
+}
+
+// IsAny returns Rule which always returns true
+func IsAny() Rule {
+	return func(s string) bool {
+		return true
 	}
 }

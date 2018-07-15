@@ -1,8 +1,10 @@
 package analyzer
 
 import (
+	"io/ioutil"
 	"nand2tetris-golang/common/parsetree"
 	"nand2tetris-golang/common/utils"
+	"nand2tetris-golang/compiler/tokenizer"
 	"testing"
 )
 
@@ -30,5 +32,28 @@ func TestAnalyzerToXML(t *testing.T) {
 		</root>
 	`) {
 		t.Error("bad xml")
+	}
+}
+
+func TestAnalyzer(t *testing.T) {
+	files := []string{
+		"../test/ArrayTest/Main",
+		"../test/ExpressionLessSquare/Main",
+		"../test/ExpressionLessSquare/Square",
+		"../test/ExpressionLessSquare/SquareGame",
+		"../test/Square/Main",
+		"../test/Square/Square",
+		"../test/Square/SquareGame",
+	}
+
+	for _, f := range files {
+		tokens := tokenizer.GetTokens(f + ".jack")
+		analyzer := New(&tokens)
+		tree := analyzer.CompileClass()
+		xml := ToXML(tree, 0)
+		comp, _ := ioutil.ReadFile(f + ".xml")
+		if !utils.CompareStrings(xml, string(comp)) {
+			t.Error("bad xml " + f)
+		}
 	}
 }

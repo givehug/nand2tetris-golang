@@ -12,9 +12,8 @@ func main() {
 
 	// tokens
 	tokens := tokenizer.GetTokens(path)
-	fmt.Println(tokenizer.ToXML(tokens))
-
-	fmt.Println()
+	// fmt.Println(tokenizer.ToXML(tokens))
+	// fmt.Println()
 
 	// parse tree
 	a := analyzer.New(&tokens)
