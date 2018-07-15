@@ -3,10 +3,10 @@ package analyzer
 // TODO
 // - vld.IsIdentifier -> t.T == tokenizer.TokenTypeIdentifier ?
 // - check token type always, because symbols/identifiers etc may be strings (pass type to eat) ?
-// - check why utils are not compiled to this module
 
 import (
 	pt "nand2tetris-golang/common/parsetree"
+	"nand2tetris-golang/common/utils"
 	"nand2tetris-golang/compiler/tokenizer"
 	vld "nand2tetris-golang/compiler/validators"
 	"strings"
@@ -481,39 +481,21 @@ func addIfHasChildren(to, leaf *pt.ParseTree) {
 // ToXML ...
 func ToXML(tree *pt.ParseTree, indent int) string {
 	tab := strings.Repeat("  ", indent)
-	xml := ""
-	leafType := tree.Type()
-	val := tree.Value()
-	children := tree.Children()
-	open := "<" + leafType + ">"
-	close := "</" + leafType + ">"
 	childrenLess := []string{
 		RuleTypeKeyword, RuleTypeIdentifier, RuleTypeSymbol,
 		RuleTypeIntegerConstant, RuleTypeStringConstant,
 	}
 
-	if vld.OneOf(childrenLess...)(leafType) {
-		xml += tab + open + " " + normalizeSymbol(val) + " " + close + "\n"
+	val := ""
+	if vld.OneOf(childrenLess...)(tree.Type()) {
+		val += " " + tree.Value() + " "
 	} else {
-		xml += tab + open + "\n"
-		for _, leaf := range children {
-			xml += ToXML(leaf, indent+1)
+		val += "\n"
+		for _, leaf := range tree.Children() {
+			val += ToXML(leaf, indent+1)
 		}
-		xml += tab + close + "\n"
+		val += tab
 	}
 
-	return xml
-}
-
-func normalizeSymbol(s string) string {
-	m := map[string]string{
-		"<":  "&lt;",
-		">":  "&gt;",
-		"&":  "&amp;",
-		"\"": "&quot;",
-	}
-	if v, in := m[s]; in {
-		return v
-	}
-	return s
+	return tab + utils.ToXMLTag(tree.Type(), val) + "\n"
 }

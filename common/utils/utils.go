@@ -54,27 +54,24 @@ func CompareStrings(a, b string) bool {
 	return filterNewLines(a) == filterNewLines(b)
 }
 
-func normalizeSymbol(s string) string {
+func normalizexXMLSymbol(s string) string {
+	trimmed := strings.TrimSpace(s)
+
 	m := map[string]string{
 		"<":  "&lt;",
 		">":  "&gt;",
 		"&":  "&amp;",
 		"\"": "&quot;",
 	}
-	if v, in := m[s]; in {
-		return v
+	if v, in := m[trimmed]; in {
+		return strings.Replace(s, trimmed, v, 1)
 	}
 	return s
 }
 
-// ToXML creates xml tag
-func ToXML(tag, val string, inline bool) string {
-	open := "<" + tag + ">"
-	close := "</" + tag + ">"
-	if inline {
-		return open + " " + normalizeSymbol(val) + " " + close
-	}
-	return open + "\n  " + normalizeSymbol(val) + "\n" + close
+// ToXMLTag creates xml tag
+func ToXMLTag(tag, val string) string {
+	return "<" + tag + ">" + normalizexXMLSymbol(val) + "</" + tag + ">"
 }
 
 // GetFunctionName return func name as string

@@ -132,15 +132,10 @@ func GetTokens(sourceFile string) []Token {
 func ToXML(tList []Token) string {
 	eol := "\n"
 	tokens := ""
-	length := len(tList)
 
-	for i, t := range tList {
-		nl := eol
-		if i == length-1 {
-			nl = ""
-		}
-		tokens += utils.ToXML(t.T, t.S, true) + nl
+	for _, t := range tList {
+		tokens += utils.ToXMLTag(t.T, " "+t.S+" ") + eol
 	}
 
-	return "<tokens>" + eol + tokens + eol + "</tokens>"
+	return "<tokens>" + eol + tokens + "</tokens>"
 }
