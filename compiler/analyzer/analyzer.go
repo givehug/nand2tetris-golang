@@ -1,8 +1,8 @@
 package analyzer
 
 // TODO
-// - vld.IsIdentifier -> t.T == tokenizer.TokenTypeIdentifier
-// - check token type always, because symbols/identifiers etc may be strings (pass type to eat)
+// - vld.IsIdentifier -> t.T == tokenizer.TokenTypeIdentifier ?
+// - check token type always, because symbols/identifiers etc may be strings (pass type to eat) ?
 // - check why utils are not compiled to this module
 
 import (
@@ -479,25 +479,25 @@ func addIfHasChildren(to, leaf *pt.ParseTree) {
 }
 
 // ToXML ...
-func ToXML(pt *pt.ParseTree, indent int) string {
+func ToXML(tree *pt.ParseTree, indent int) string {
 	tab := strings.Repeat("  ", indent)
 	xml := ""
-	t := pt.Type()
-	v := pt.Value()
-	c := pt.Children()
-	open := "<" + t + ">"
-	close := "</" + t + ">"
+	leafType := tree.Type()
+	val := tree.Value()
+	children := tree.Children()
+	open := "<" + leafType + ">"
+	close := "</" + leafType + ">"
 	childrenLess := []string{
 		RuleTypeKeyword, RuleTypeIdentifier, RuleTypeSymbol,
 		RuleTypeIntegerConstant, RuleTypeStringConstant,
 	}
 
-	if vld.OneOf(childrenLess...)(t) {
-		xml += tab + open + " " + normalizeSymbol(v) + " " + close + "\n"
+	if vld.OneOf(childrenLess...)(leafType) {
+		xml += tab + open + " " + normalizeSymbol(val) + " " + close + "\n"
 	} else {
 		xml += tab + open + "\n"
-		for _, ch := range c {
-			xml += ToXML(ch, indent+1)
+		for _, leaf := range children {
+			xml += ToXML(leaf, indent+1)
 		}
 		xml += tab + close + "\n"
 	}
