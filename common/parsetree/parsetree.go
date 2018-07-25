@@ -47,3 +47,11 @@ func (p *ParseTree) SetType(s string) {
 func (p *ParseTree) Type() string {
 	return p.t
 }
+
+// TraversePreorder performs depth first ParseTree traversal
+func (p *ParseTree) TraversePreorder(fn func(l *ParseTree)) {
+	fn(p)
+	for _, leaf := range p.Children() {
+		leaf.TraversePreorder(fn)
+	}
+}

@@ -42,40 +42,38 @@ type Analyzer struct {
 	tl *[]tokenizer.Token // token list
 }
 
-// New returns new Analyzer
-func New(tl *[]tokenizer.Token) *Analyzer {
-	return &Analyzer{-1, tl}
-}
+// CompileClass accepts token list and returns parse tree
+func CompileClass(tl *[]tokenizer.Token) *pt.ParseTree {
+	// create analyzer struct
+	a := &Analyzer{-1, tl}
 
-// CompileClass ...
-func (a *Analyzer) CompileClass() *pt.ParseTree {
 	// Grammar: 'class' className '{' classVarDec* subroutineDec* '}'
-	leaf := pt.New(RuleTypeClass, "")
+	tree := pt.New(RuleTypeClass, "")
 
 	// 'class'
-	leaf.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.Identity("class"))))
+	tree.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.Identity("class"))))
 	// className
-	leaf.AddChildren(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+	tree.AddChildren(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
 	// '{'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
+	tree.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
 	// classVarDec*
 	for {
 		if !vld.OneOf("static", "field")(a.getNextToken().S) {
 			break // no more var decs
 		}
-		addIfHasChildren(leaf, a.compileClassVarDec())
+		addIfHasChildren(tree, a.compileClassVarDec())
 	}
 	// subroutineDec*
 	for {
 		if !vld.OneOf("constructor", "function", "method")(a.getNextToken().S) {
 			break // no more subroutines
 		}
-		addIfHasChildren(leaf, a.compileClassSubroutineDec())
+		addIfHasChildren(tree, a.compileClassSubroutineDec())
 	}
 	// '}'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("}"))))
+	tree.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("}"))))
 
-	return leaf
+	return tree
 }
 
 func (a *Analyzer) compileClassVarDec() *pt.ParseTree {
@@ -478,7 +476,7 @@ func addIfHasChildren(to, leaf *pt.ParseTree) {
 	}
 }
 
-// ToXML ...
+// ToXML returns xml representation of parse tree
 func ToXML(tree *pt.ParseTree, indent int) string {
 	tab := strings.Repeat("  ", indent)
 	childrenLess := []string{

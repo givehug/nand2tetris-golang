@@ -8,15 +8,14 @@ import (
 )
 
 func main() {
-	path := os.Args[1]
+	file := os.Args[1]
 
-	// tokens
-	tokens := tokenizer.GetTokens(path)
+	tokens := tokenizer.GetTokens(file)    // tokens list
+	tree := analyzer.CompileClass(&tokens) // parse tree
+
+	// Print tokens XML
 	// fmt.Println(tokenizer.ToXML(tokens))
-	// fmt.Println()
 
-	// parse tree
-	a := analyzer.New(&tokens)
-	tree := a.CompileClass()
+	// Print parsed tree XML
 	fmt.Println(analyzer.ToXML(tree, 0))
 }

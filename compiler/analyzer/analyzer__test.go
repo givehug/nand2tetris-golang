@@ -48,8 +48,7 @@ func TestAnalyzer(t *testing.T) {
 
 	for _, f := range files {
 		tokens := tokenizer.GetTokens(f + ".jack")
-		analyzer := New(&tokens)
-		tree := analyzer.CompileClass()
+		tree := CompileClass(&tokens)
 		xml := ToXML(tree, 0)
 		comp, _ := ioutil.ReadFile(f + ".xml")
 		if !utils.CompareStrings(xml, string(comp)) {
