@@ -28,9 +28,9 @@ func CompileClass(inFile, outFile string) {
 }
 
 func compileClassVarDec(tree *pt.ParseTree, table *st.SymbolTable) {
-	// add 'static' | 'field' vars to table
+	// add vars to table
 	leaves := tree.Leaves()
-	kind := leaves[0].Value() //
+	kind := leaves[0].Value() // 'static' | 'field'
 	varType := leaves[1].Value()
 	for _, leaf := range leaves {
 		if leaf.Type() == analyzer.RuleTypeIdentifier {

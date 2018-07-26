@@ -4,7 +4,7 @@ import (
 	"nand2tetris-golang/compiler/mapping"
 )
 
-// TableEntry ...
+// TableEntry struct
 type TableEntry struct {
 	name    string
 	varType string
@@ -12,7 +12,7 @@ type TableEntry struct {
 	number  int
 }
 
-// Table ...
+// Table type
 type Table map[string]*TableEntry
 
 // SymbolTableInterface ...
@@ -25,14 +25,14 @@ type SymbolTableInterface interface {
 	IndexOf(name string) int
 }
 
-// SymbolTable ...
+// SymbolTable struct
 type SymbolTable struct {
 	SymbolTableInterface
 	classTable      Table
 	subroutineTable Table
 }
 
-// New ...
+// New creates new symbol table
 func New() *SymbolTable {
 	return &SymbolTable{
 		classTable:      make(Table),
@@ -40,7 +40,7 @@ func New() *SymbolTable {
 	}
 }
 
-// Define ...
+// Define adds new entry to the table
 func (table *SymbolTable) Define(name, varType, kind string) {
 	entry := &TableEntry{name, varType, kind, table.VarCount(kind)}
 	if kind == mapping.IdentifierTypeVar || kind == mapping.IdentifierTypeArg {
@@ -50,12 +50,12 @@ func (table *SymbolTable) Define(name, varType, kind string) {
 	}
 }
 
-// StartSubroutine ...
+// StartSubroutine resets subroutine table
 func (table *SymbolTable) StartSubroutine() {
 	table.subroutineTable = make(Table)
 }
 
-// VarCount ...
+// VarCount returns number of identifiers in table by kind
 func (table *SymbolTable) VarCount(kind string) int {
 	if kind == mapping.IdentifierTypeVar || kind == mapping.IdentifierTypeArg {
 		return varCount(kind, &table.subroutineTable)
@@ -63,7 +63,7 @@ func (table *SymbolTable) VarCount(kind string) int {
 	return varCount(kind, &table.classTable)
 }
 
-// KindOf ...
+// KindOf returns kind of identifier by name
 func (table *SymbolTable) KindOf(name string) string {
 	if val, ok := table.classTable[name]; ok {
 		return val.kind
@@ -74,7 +74,7 @@ func (table *SymbolTable) KindOf(name string) string {
 	return ""
 }
 
-// TypeOf ...
+// TypeOf returns varType of identifier by name
 func (table *SymbolTable) TypeOf(name string) string {
 	if val, ok := table.classTable[name]; ok {
 		return val.varType
@@ -85,7 +85,7 @@ func (table *SymbolTable) TypeOf(name string) string {
 	return ""
 }
 
-// IndexOf ...
+// IndexOf returns index of identifier by name
 func (table *SymbolTable) IndexOf(name string) int {
 	if val, ok := table.classTable[name]; ok {
 		return val.number
