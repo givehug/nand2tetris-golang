@@ -16,49 +16,49 @@ func writeLine(f *os.File, s string) {
 }
 
 // WritePush ...
-// segment: CONST | ARG | LOCAL | STATIC | THI | THAT | POINTER | TEMP
+// segment: one of mapping push pop segments
 func WritePush(f *os.File, segment string, index int) {
-	writeLine(f, "todo")
+	writeLine(f, "push "+segment+" "+string(index))
 }
 
 // WritePop ...
-// segment: ARG | LOCAL | STATIC | THI | THAT | POINTER | TEMP
+// segment: one of mapping push pop segments
 func WritePop(f *os.File, segment string, index int) {
-	writeLine(f, "todo")
+	writeLine(f, "push "+segment+" "+string(index))
 }
 
 // WriteArithmetic ...
-// command: ADD, SUB, NEG, EQ, GT, LT, AND, OR, NOT
+// command: one of mapping arithmetic commands
 func WriteArithmetic(f *os.File, command string) {
-	writeLine(f, "todo")
+	writeLine(f, command)
 }
 
 // WriteLabel ...
 func WriteLabel(f *os.File, label string) {
-	writeLine(f, "todo")
+	writeLine(f, "label "+label)
 }
 
 // WriteGoto ...
 func WriteGoto(f *os.File, label string) {
-	writeLine(f, "todo")
+	writeLine(f, "goto "+label)
 }
 
 // WriteIf ...
 func WriteIf(f *os.File, label string) {
-	writeLine(f, "todo")
+	writeLine(f, "if-goto "+label)
 }
 
 // WriteCall ...
-func WriteCall(f *os.File, name string, nArgs int) {
-	writeLine(f, "todo")
+func WriteCall(f *os.File, className, subName string, nArgs int) {
+	writeLine(f, "call "+className+"."+subName+" "+string(nArgs))
 }
 
 // WriteFunction ...
-func WriteFunction(f *os.File, name string, nLocals int) {
-	writeLine(f, "todo")
+func WriteFunction(f *os.File, className, subName string, nLocals int) {
+	writeLine(f, "function "+className+"."+subName+" "+string(nLocals))
 }
 
 // WriteReturn ...
 func WriteReturn(f *os.File) {
-	writeLine(f, "todo")
+	writeLine(f, "return")
 }
