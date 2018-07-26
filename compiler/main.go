@@ -1,21 +1,28 @@
 package main
 
 import (
-	"fmt"
-	"nand2tetris-golang/compiler/analyzer"
-	"nand2tetris-golang/compiler/tokenizer"
+	"nand2tetris-golang/compiler/engine"
 	"os"
+	"path/filepath"
+	"strings"
+)
+
+const (
+	jackFileExt = ".jack"
+	vmFileExt   = ".vm"
 )
 
 func main() {
-	file := os.Args[1]
-
-	tokens := tokenizer.GetTokens(file)    // tokens list
-	tree := analyzer.CompileClass(&tokens) // parse tree
-
-	// Print tokens XML
-	// fmt.Println(tokenizer.ToXML(tokens))
-
-	// Print parsed tree XML
-	fmt.Println(analyzer.ToXML(tree, 0))
+	// handle directory or jack file path as single cli arg
+	path := os.Args[1]
+	// compile .vm file for each .jack file in dir
+	var files []string
+	if strings.HasSuffix(path, jackFileExt) {
+		files = []string{path}
+	} else {
+		files, _ = filepath.Glob(path + "/*" + jackFileExt)
+	}
+	for _, f := range files {
+		engine.CompileClass(f, strings.Replace(f, jackFileExt, vmFileExt, 1))
+	}
 }

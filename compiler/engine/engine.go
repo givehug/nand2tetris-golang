@@ -1,14 +1,41 @@
 package engine
 
-// New constructor ? Use CompileClass directly
-// func New(inFile, outFile string) {}
+import (
+	"fmt"
+	pt "nand2tetris-golang/common/parsetree"
+	"nand2tetris-golang/compiler/analyzer"
+	st "nand2tetris-golang/compiler/symboltable"
+	"nand2tetris-golang/compiler/tokenizer"
+)
 
 // CompileClass ...
-func CompileClass() {}
+func CompileClass(inFile, outFile string) {
+	// fmt.Println(inFile, outFile)
+	tokens := tokenizer.GetTokens(inFile)  // get tokens list
+	tree := analyzer.CompileClass(&tokens) // create parse tree
+	// fmt.Println(tokenizer.ToXML(tokens)) // print tokens XML
+	// fmt.Println(analyzer.ToXML(tree, 0)) // print parsed tree XML
+	table := st.New() // create symbol table
 
-func compileClassVarDec() {}
+	for _, leaf := range tree.Leaves() {
+		if leaf.Type() == analyzer.RuleTypeClassVarDec {
+			compileClassVarDec(leaf, table)
+		}
+		if leaf.Type() == analyzer.RuleTypeSubroutineDec {
+			compileClassSubroutineDec(leaf, table)
+		}
+	}
+}
 
-func compileClassSubroutineDec() {}
+func compileClassVarDec(tree *pt.ParseTree, table *st.SymbolTable) {
+	// todo add vars to table
+	fmt.Println("compileClassVarDec")
+}
+
+func compileClassSubroutineDec(tree *pt.ParseTree, table *st.SymbolTable) {
+	// todo continue processing
+	fmt.Println("compileClassSubroutineDec")
+}
 
 func compileParameterList() {}
 
