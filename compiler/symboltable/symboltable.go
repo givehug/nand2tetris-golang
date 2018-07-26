@@ -1,22 +1,14 @@
 package st
 
 import (
-	"fmt"
-)
-
-// Identifier type constants
-const (
-	IdentifierTypeStatic = iota
-	IdentifierTypeField
-	IdentifierTypeArg
-	IdentifierTypeVar
+	"nand2tetris-golang/compiler/mapping"
 )
 
 // TableEntry ...
 type TableEntry struct {
 	name    string
 	varType string
-	kind    int
+	kind    string
 	number  int
 }
 
@@ -49,9 +41,9 @@ func New() *SymbolTable {
 }
 
 // Define ...
-func (table *SymbolTable) Define(name, varType string, kind int) {
+func (table *SymbolTable) Define(name, varType, kind string) {
 	entry := &TableEntry{name, varType, kind, table.VarCount(kind)}
-	if kind == IdentifierTypeVar || kind == IdentifierTypeArg {
+	if kind == mapping.IdentifierTypeVar || kind == mapping.IdentifierTypeArg {
 		table.subroutineTable[name] = entry
 	} else {
 		table.classTable[name] = entry
@@ -64,22 +56,22 @@ func (table *SymbolTable) StartSubroutine() {
 }
 
 // VarCount ...
-func (table *SymbolTable) VarCount(kind int) int {
-	if kind == IdentifierTypeVar || kind == IdentifierTypeArg {
+func (table *SymbolTable) VarCount(kind string) int {
+	if kind == mapping.IdentifierTypeVar || kind == mapping.IdentifierTypeArg {
 		return varCount(kind, &table.subroutineTable)
 	}
 	return varCount(kind, &table.classTable)
 }
 
 // KindOf ...
-func (table *SymbolTable) KindOf(name string) int {
+func (table *SymbolTable) KindOf(name string) string {
 	if val, ok := table.classTable[name]; ok {
 		return val.kind
 	}
 	if val, ok := table.subroutineTable[name]; ok {
 		return val.kind
 	}
-	return -1
+	return ""
 }
 
 // TypeOf ...
@@ -96,17 +88,15 @@ func (table *SymbolTable) TypeOf(name string) string {
 // IndexOf ...
 func (table *SymbolTable) IndexOf(name string) int {
 	if val, ok := table.classTable[name]; ok {
-		fmt.Println(1)
 		return val.number
 	}
 	if val, ok := table.subroutineTable[name]; ok {
-		fmt.Println(2, table.subroutineTable)
 		return val.number
 	}
 	return -1
 }
 
-func varCount(kind int, t *Table) int {
+func varCount(kind string, t *Table) int {
 	varCount := 0
 	for _, val := range *t {
 		if val.kind == kind {

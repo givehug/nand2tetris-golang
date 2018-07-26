@@ -15,11 +15,19 @@ const (
 
 // push pop segments
 const (
-	SegmentARG     = "arg"
+	SegmentARG     = "argument"
 	SegmentLOCAL   = "local"
 	SegmentSTATIC  = "static"
 	SegmentTHIS    = "this"
 	SegmentTHAT    = "that"
 	SegmentPOINTER = "pointer"
 	SegmentTEMP    = "temp"
+)
+
+// Identifier type constants
+const (
+	IdentifierTypeStatic = "static"
+	IdentifierTypeField  = "field"
+	IdentifierTypeArg    = "argument"
+	IdentifierTypeVar    = "local"
 )

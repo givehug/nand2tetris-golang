@@ -28,8 +28,15 @@ func CompileClass(inFile, outFile string) {
 }
 
 func compileClassVarDec(tree *pt.ParseTree, table *st.SymbolTable) {
-	// todo add vars to table
-	fmt.Println("compileClassVarDec")
+	// add 'static' | 'field' vars to table
+	leaves := tree.Leaves()
+	kind := leaves[0].Value() //
+	varType := leaves[1].Value()
+	for _, leaf := range leaves {
+		if leaf.Type() == analyzer.RuleTypeIdentifier {
+			table.Define(leaf.Value(), varType, kind)
+		}
+	}
 }
 
 func compileClassSubroutineDec(tree *pt.ParseTree, table *st.SymbolTable) {
