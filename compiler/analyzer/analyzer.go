@@ -51,11 +51,11 @@ func CompileClass(tl *[]tokenizer.Token) *pt.ParseTree {
 	tree := pt.New(RuleTypeClass, "")
 
 	// 'class'
-	tree.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.Identity("class"))))
+	tree.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.Identity("class"))))
 	// className
-	tree.AddChildren(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+	tree.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
 	// '{'
-	tree.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
+	tree.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
 	// classVarDec*
 	for {
 		if !vld.OneOf("static", "field")(a.getNextToken().S) {
@@ -71,7 +71,7 @@ func CompileClass(tl *[]tokenizer.Token) *pt.ParseTree {
 		addIfHasChildren(tree, a.compileClassSubroutineDec())
 	}
 	// '}'
-	tree.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("}"))))
+	tree.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("}"))))
 
 	return tree
 }
@@ -81,21 +81,21 @@ func (a *Analyzer) compileClassVarDec() *pt.ParseTree {
 	leaf := pt.New(RuleTypeClassVarDec, "")
 
 	// ('static' | 'field')
-	leaf.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.OneOf("static", "field"))))
+	leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.OneOf("static", "field"))))
 	// type
 	a.compileType(leaf, false)
 	// varName (',' varName)*
 	for {
 		// varName
-		leaf.AddChildren(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
 		if !vld.Identity(",")(a.getNextToken().S) {
 			break // no more identifiers
 		}
 		// ','
-		leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(","))))
+		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(","))))
 	}
 	// ';'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(";"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(";"))))
 
 	return leaf
 }
@@ -106,19 +106,19 @@ func (a *Analyzer) compileClassSubroutineDec() *pt.ParseTree {
 	leaf := pt.New(RuleTypeSubroutineDec, "")
 
 	// ("constructor" | "function" | "method")
-	leaf.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.OneOf("constructor", "function", "method"))))
+	leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.OneOf("constructor", "function", "method"))))
 	// ('void' | type)
 	a.compileType(leaf, true)
 	// subroutineName
-	leaf.AddChildren(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+	leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
 	// '('
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("("))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("("))))
 	// parameterList
-	leaf.AddChildren(a.compileParameterList())
+	leaf.AddLeaves(a.compileParameterList())
 	// ')'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(")"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(")"))))
 	// subroutineBody
-	leaf.AddChildren(a.compileSubroutineBody())
+	leaf.AddLeaves(a.compileSubroutineBody())
 
 	return leaf
 }
@@ -133,12 +133,12 @@ func (a *Analyzer) compileParameterList() *pt.ParseTree {
 			// type
 			a.compileType(leaf, false)
 			// varName
-			leaf.AddChildren(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+			leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
 			if !vld.Identity(",")(a.getNextToken().S) {
 				break // no more parameters
 			}
 			// ','
-			leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(","))))
+			leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(","))))
 		}
 	}
 
@@ -151,9 +151,9 @@ func (a *Analyzer) compileType(leaf *pt.ParseTree, includeVoid bool) {
 		if includeVoid {
 			ops = append(ops, "void")
 		}
-		leaf.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.OneOf(ops...))))
+		leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.OneOf(ops...))))
 	} else {
-		leaf.AddChildren(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
 	}
 }
 
@@ -162,18 +162,18 @@ func (a *Analyzer) compileSubroutineBody() *pt.ParseTree {
 	leaf := pt.New(RuleTypeSubroutineBody, "")
 
 	// '{'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
 	// varDec*
 	for {
 		if !vld.Identity("var")(a.getNextToken().S) {
 			break // no more var decs
 		}
-		leaf.AddChildren(a.compileVarDec())
+		leaf.AddLeaves(a.compileVarDec())
 	}
 	// statements
-	leaf.AddChildren(a.compileStatements())
+	leaf.AddLeaves(a.compileStatements())
 	// '}'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("}"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("}"))))
 
 	return leaf
 }
@@ -183,21 +183,21 @@ func (a *Analyzer) compileVarDec() *pt.ParseTree {
 	leaf := pt.New(RuleTypeVarDec, "")
 
 	// 'var'
-	leaf.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.Identity("var"))))
+	leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.Identity("var"))))
 	// type
 	a.compileType(leaf, false)
 	// varName (',' varName)*
 	for {
 		// varName
-		leaf.AddChildren(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
 		if !vld.Identity(",")(a.getNextToken().S) {
 			break // no more var identifiers
 		}
 		// ','
-		leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(","))))
+		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(","))))
 	}
 	// ';'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(";"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(";"))))
 
 	return leaf
 }
@@ -213,15 +213,15 @@ func (a *Analyzer) compileStatements() *pt.ParseTree {
 		}
 		switch next.S {
 		case "let":
-			leaf.AddChildren(a.compileLetStatement())
+			leaf.AddLeaves(a.compileLetStatement())
 		case "if":
-			leaf.AddChildren(a.compileIfStatement())
+			leaf.AddLeaves(a.compileIfStatement())
 		case "while":
-			leaf.AddChildren(a.compileWhileStatement())
+			leaf.AddLeaves(a.compileWhileStatement())
 		case "do":
-			leaf.AddChildren(a.compileDoStatement())
+			leaf.AddLeaves(a.compileDoStatement())
 		case "return":
-			leaf.AddChildren(a.compileReturnStatement())
+			leaf.AddLeaves(a.compileReturnStatement())
 		}
 	}
 
@@ -233,11 +233,11 @@ func (a *Analyzer) compileDoStatement() *pt.ParseTree {
 	leaf := pt.New(RuleTypeDoStatement, "")
 
 	// 'do'
-	leaf.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.Identity("do"))))
+	leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.Identity("do"))))
 	// subroutineCall
 	a.compileSubroutineCall(leaf)
 	// ';'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(";"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(";"))))
 
 	return leaf
 }
@@ -247,13 +247,13 @@ func (a *Analyzer) compileReturnStatement() *pt.ParseTree {
 	leaf := pt.New(RuleTypeReturnStatement, "")
 
 	// 'return'
-	leaf.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.Identity("return"))))
+	leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.Identity("return"))))
 	// expression?
 	if !vld.Identity(";")(a.getNextToken().S) {
-		leaf.AddChildren(a.compileExpression())
+		leaf.AddLeaves(a.compileExpression())
 	}
 	// ';'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(";"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(";"))))
 
 	return leaf
 }
@@ -263,19 +263,19 @@ func (a *Analyzer) compileWhileStatement() *pt.ParseTree {
 	leaf := pt.New(RuleTypeWhileStatement, "")
 
 	// 'while'
-	leaf.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.Identity("while"))))
+	leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.Identity("while"))))
 	// '('
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("("))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("("))))
 	// expression
-	leaf.AddChildren(a.compileExpression())
+	leaf.AddLeaves(a.compileExpression())
 	// ')'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(")"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(")"))))
 	// '{'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
 	// statements
-	leaf.AddChildren(a.compileStatements())
+	leaf.AddLeaves(a.compileStatements())
 	// '}'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("}"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("}"))))
 
 	return leaf
 }
@@ -286,29 +286,29 @@ func (a *Analyzer) compileIfStatement() *pt.ParseTree {
 	leaf := pt.New(RuleTypeIfStatement, "")
 
 	// 'if'
-	leaf.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.Identity("if"))))
+	leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.Identity("if"))))
 	// '('
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("("))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("("))))
 	// expression
-	leaf.AddChildren(a.compileExpression())
+	leaf.AddLeaves(a.compileExpression())
 	// ')'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(")"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(")"))))
 	// '{'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
 	// statements
-	leaf.AddChildren(a.compileStatements())
+	leaf.AddLeaves(a.compileStatements())
 	// '}'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("}"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("}"))))
 	// ('else' '{' statements '}')?
 	if vld.Identity("else")(a.getNextToken().S) {
 		// 'else'
-		leaf.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.Identity("else"))))
+		leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.Identity("else"))))
 		// '{'
-		leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
+		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
 		// statements
-		leaf.AddChildren(a.compileStatements())
+		leaf.AddLeaves(a.compileStatements())
 		// '}'
-		leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("}"))))
+		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("}"))))
 	}
 
 	return leaf
@@ -319,24 +319,24 @@ func (a *Analyzer) compileLetStatement() *pt.ParseTree {
 	leaf := pt.New(RuleTypeLetStatement, "")
 
 	// 'let'
-	leaf.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.Identity("let"))))
+	leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.Identity("let"))))
 	// varName
-	leaf.AddChildren(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+	leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
 	// ('['expression']')?
 	if vld.Identity("[")(a.getNextToken().S) {
 		// '['
-		leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("["))))
+		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("["))))
 		// 'expression'
-		leaf.AddChildren(a.compileExpression())
+		leaf.AddLeaves(a.compileExpression())
 		// ']'
-		leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("]"))))
+		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("]"))))
 	}
 	// '='
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("="))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("="))))
 	// expression
-	leaf.AddChildren(a.compileExpression())
+	leaf.AddLeaves(a.compileExpression())
 	// ';'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(";"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(";"))))
 
 	return leaf
 }
@@ -346,20 +346,20 @@ func (a *Analyzer) compileSubroutineCall(leaf *pt.ParseTree) {
 	// (className|varName) '.' subroutineName '(' expressionList ')'
 
 	// subroutineName | (className|varName)
-	leaf.AddChildren(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+	leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
 	if vld.Identity(".")(a.getNextToken().S) {
 		// '.' subroutineName
 		// '.'
-		leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("."))))
+		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("."))))
 		// subroutineName
-		leaf.AddChildren(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
 	}
 	// '('
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("("))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("("))))
 	// expressionList
-	leaf.AddChildren(a.compileExpressionList())
+	leaf.AddLeaves(a.compileExpressionList())
 	// ')'
-	leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(")"))))
+	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(")"))))
 }
 
 func (a *Analyzer) compileExpression() *pt.ParseTree {
@@ -368,11 +368,11 @@ func (a *Analyzer) compileExpression() *pt.ParseTree {
 	ops := []string{"+", "-", "*", "/", "&", "|", "<", ">", "="}
 
 	for {
-		leaf.AddChildren(a.compileTerm())
+		leaf.AddLeaves(a.compileTerm())
 		if !vld.OneOf(ops...)(a.getNextToken().S) {
 			break
 		}
-		leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.OneOf(ops...))))
+		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.OneOf(ops...))))
 	}
 
 	return leaf
@@ -388,10 +388,10 @@ func (a *Analyzer) compileExpressionList() *pt.ParseTree {
 			break
 		}
 		// expression
-		leaf.AddChildren(a.compileExpression())
+		leaf.AddLeaves(a.compileExpression())
 		if vld.Identity(",")(a.getNextToken().S) {
 			// ','
-			leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(","))))
+			leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(","))))
 		}
 	}
 
@@ -407,34 +407,34 @@ func (a *Analyzer) compileTerm() *pt.ParseTree {
 
 	if next.T == tokenizer.TokenTypeIntConstant {
 		// integetConstant
-		leaf.AddChildren(pt.New(RuleTypeIntegerConstant, a.eat(vld.IsInt)))
+		leaf.AddLeaves(pt.New(RuleTypeIntegerConstant, a.eat(vld.IsInt)))
 	} else if next.T == tokenizer.TokenTypeStringConstant {
 		// stringConstant
-		leaf.AddChildren(pt.New(RuleTypeStringConstant, a.eat(vld.IsAny())))
+		leaf.AddLeaves(pt.New(RuleTypeStringConstant, a.eat(vld.IsAny())))
 	} else if next.T == tokenizer.TokenTypeKeyword && vld.OneOf("true", "false", "null", "this")(next.S) {
 		// keywordConstant
-		leaf.AddChildren(pt.New(RuleTypeKeyword, a.eat(vld.OneOf("true", "false", "null", "this"))))
+		leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.OneOf("true", "false", "null", "this"))))
 	} else if next.T == tokenizer.TokenTypeSymbol && next.S == "(" {
 		// '('expression')'
-		leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("("))))
-		leaf.AddChildren(a.compileExpression())
-		leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity(")"))))
+		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("("))))
+		leaf.AddLeaves(a.compileExpression())
+		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(")"))))
 	} else if next.T == tokenizer.TokenTypeSymbol && vld.OneOf("-", "~")(next.S) {
 		// unaryOp term
-		leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.OneOf("-", "~"))))
-		leaf.AddChildren(a.compileTerm())
+		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.OneOf("-", "~"))))
+		leaf.AddLeaves(a.compileTerm())
 	} else if afterNext.T == tokenizer.TokenTypeSymbol && vld.OneOf("(", ".")(afterNext.S) {
 		// subroutineCall
 		a.compileSubroutineCall(leaf)
 	} else {
 		// varName
-		leaf.AddChildren(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
 		// '['expression']' ?
 		next := a.getNextToken()
 		if next.T == tokenizer.TokenTypeSymbol && next.S == "[" {
-			leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("["))))
-			leaf.AddChildren(a.compileExpression())
-			leaf.AddChildren(pt.New(RuleTypeSymbol, a.eat(vld.Identity("]"))))
+			leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("["))))
+			leaf.AddLeaves(a.compileExpression())
+			leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("]"))))
 		}
 	}
 
@@ -471,8 +471,8 @@ func (a *Analyzer) eat(rules ...vld.Rule) string {
 
 // add 'leaf' to 'to' as child if 'leaf' has children
 func addIfHasChildren(to, leaf *pt.ParseTree) {
-	if leaf.HasChildren() {
-		to.AddChildren(leaf)
+	if leaf.HasLeaves() {
+		to.AddLeaves(leaf)
 	}
 }
 
@@ -489,7 +489,7 @@ func ToXML(tree *pt.ParseTree, indent int) string {
 		val += " " + tree.Value() + " "
 	} else {
 		val += "\n"
-		for _, leaf := range tree.Children() {
+		for _, leaf := range tree.Leaves() {
 			val += ToXML(leaf, indent+1)
 		}
 		val += tab

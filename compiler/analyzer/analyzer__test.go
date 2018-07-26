@@ -11,11 +11,11 @@ import (
 func TestAnalyzerToXML(t *testing.T) {
 	root := parsetree.New("root", "")
 	child2 := parsetree.New("child2", "")
-	child2.AddChildren(
+	child2.AddLeaves(
 		parsetree.New("child21", "val21"),
 		parsetree.New("child22", "val22"),
 	)
-	root.AddChildren(
+	root.AddLeaves(
 		parsetree.New("child1", "val1"),
 		child2,
 		parsetree.New("child3", "val3"),

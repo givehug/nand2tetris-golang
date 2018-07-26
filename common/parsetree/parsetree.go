@@ -13,18 +13,18 @@ func New(t string, v string) *ParseTree {
 	return &ParseTree{t, v, c}
 }
 
-// AddChildren ...
-func (p *ParseTree) AddChildren(c ...*ParseTree) {
+// AddLeaves ...
+func (p *ParseTree) AddLeaves(c ...*ParseTree) {
 	p.children = append(p.children, c...)
 }
 
-// Children ...
-func (p *ParseTree) Children() []*ParseTree {
+// Leaves ...
+func (p *ParseTree) Leaves() []*ParseTree {
 	return p.children
 }
 
-// HasChildren ...
-func (p *ParseTree) HasChildren() bool {
+// HasLeaves ...
+func (p *ParseTree) HasLeaves() bool {
 	return len(p.children) > 0
 }
 
@@ -51,7 +51,7 @@ func (p *ParseTree) Type() string {
 // TraversePreorder performs depth first ParseTree traversal
 func (p *ParseTree) TraversePreorder(fn func(l *ParseTree)) {
 	fn(p)
-	for _, leaf := range p.Children() {
+	for _, leaf := range p.Leaves() {
 		leaf.TraversePreorder(fn)
 	}
 }
