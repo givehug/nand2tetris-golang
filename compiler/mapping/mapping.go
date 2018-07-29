@@ -5,7 +5,7 @@ const (
 	ArithmCmdADD = "add"
 	ArithmCmdSUB = "sub"
 	ArithmCmdNEG = "neg"
-	ArithmCmdEQ  = "not"
+	ArithmCmdEQ  = "eq"
 	ArithmCmdGT  = "gt"
 	ArithmCmdLT  = "lt"
 	ArithmCmdAND = "and"
@@ -13,18 +13,31 @@ const (
 	ArithmCmdNOT = "not"
 )
 
+var ArithmSymbols = map[string]string{
+	"+": ArithmCmdADD,
+	"-": ArithmCmdSUB,
+	"*": "call Math.multiply 2",
+	"/": "call Math.divide 2",
+	"&": ArithmCmdAND,
+	"|": ArithmCmdOR,
+	"<": ArithmCmdLT,
+	">": ArithmCmdGT,
+	"=": ArithmCmdEQ,
+}
+
 // push pop segments
 const (
-	SegmentARG     = "argument"
-	SegmentLOCAL   = "local"
-	SegmentSTATIC  = "static"
-	SegmentTHIS    = "this"
-	SegmentTHAT    = "that"
-	SegmentPOINTER = "pointer"
-	SegmentTEMP    = "temp"
+	SegmentARG    = "argument"
+	SegmentLOCAL  = "local"
+	SegmentSTATIC = "static"
+	SegmentTHIS   = "this"
+	SegmentTHAT   = "that"
+	SegmentPOINT  = "pointer"
+	SegmentTEMP   = "temp"
+	SegmentCONST  = "constant"
 )
 
-// Identifier type constants
+// identifier type constants
 const (
 	IdentifierTypeStatic = "static"
 	IdentifierTypeField  = "field"

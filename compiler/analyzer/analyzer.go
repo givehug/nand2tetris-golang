@@ -128,6 +128,7 @@ func (a *Analyzer) compileParameterList() *pt.ParseTree {
 	leaf := pt.New(RuleTypeParameterList, "")
 
 	// no parameters
+	// TODO: type can be className
 	if vld.OneOf("int", "char", "boolean")(a.getNextToken().S) {
 		for {
 			// type

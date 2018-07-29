@@ -65,13 +65,17 @@ func (table *SymbolTable) VarCount(kind string) int {
 
 // KindOf returns kind of identifier by name
 func (table *SymbolTable) KindOf(name string) string {
+	kind := ""
 	if val, ok := table.classTable[name]; ok {
-		return val.kind
+		kind = val.kind
 	}
 	if val, ok := table.subroutineTable[name]; ok {
-		return val.kind
+		kind = val.kind
 	}
-	return ""
+	if kind == mapping.IdentifierTypeField {
+		kind = "this"
+	}
+	return kind
 }
 
 // TypeOf returns varType of identifier by name

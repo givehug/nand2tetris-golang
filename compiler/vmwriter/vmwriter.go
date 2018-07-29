@@ -1,30 +1,24 @@
 package vmwriter
 
 import (
-	"nand2tetris-golang/common/utils"
 	"os"
+	"strconv"
 )
 
 func writeLine(f *os.File, s string) {
-	fi, err := f.Stat()
-	utils.HandleErr(err)
-	eol := "\n"
-	if fi.Size() == 0 {
-		eol = ""
-	}
-	f.WriteString(eol + s)
+	f.WriteString(s + "\n")
 }
 
 // WritePush ...
 // segment: one of mapping push pop segments
 func WritePush(f *os.File, segment string, index int) {
-	writeLine(f, "push "+segment+" "+string(index))
+	writeLine(f, "push "+segment+" "+strconv.Itoa(index))
 }
 
 // WritePop ...
 // segment: one of mapping push pop segments
 func WritePop(f *os.File, segment string, index int) {
-	writeLine(f, "push "+segment+" "+string(index))
+	writeLine(f, "pop "+segment+" "+strconv.Itoa(index))
 }
 
 // WriteArithmetic ...
@@ -50,15 +44,21 @@ func WriteIf(f *os.File, label string) {
 
 // WriteCall ...
 func WriteCall(f *os.File, className, subName string, nArgs int) {
-	writeLine(f, "call "+className+"."+subName+" "+string(nArgs))
+	writeLine(f, "call "+className+"."+subName+" "+strconv.Itoa(nArgs))
 }
 
 // WriteFunction ...
 func WriteFunction(f *os.File, className, subName string, nLocals int) {
-	writeLine(f, "function "+className+"."+subName+" "+string(nLocals))
+	writeLine(f, "function "+className+"."+subName+" "+strconv.Itoa(nLocals))
 }
 
 // WriteReturn ...
 func WriteReturn(f *os.File) {
 	writeLine(f, "return")
+}
+
+// WriteComment ...
+func WriteComment(f *os.File, s string) {
+	writeLine(f, "")
+	writeLine(f, "// "+s)
 }

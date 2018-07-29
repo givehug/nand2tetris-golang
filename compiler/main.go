@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"nand2tetris-golang/compiler/engine"
 	"os"
 	"path/filepath"
@@ -23,6 +24,7 @@ func main() {
 		files, _ = filepath.Glob(path + "/*" + jackFileExt)
 	}
 	for _, f := range files {
-		engine.CompileClass(f, strings.Replace(f, jackFileExt, vmFileExt, 1))
+		engine.Compile(f, strings.Replace(f, jackFileExt, vmFileExt, 1))
 	}
+	fmt.Println("done")
 }

@@ -1,6 +1,7 @@
 package tokenizer
 
 import (
+	"errors"
 	"nand2tetris-golang/common/parser"
 	"nand2tetris-golang/common/utils"
 	"nand2tetris-golang/compiler/validators"
@@ -68,8 +69,20 @@ type Token struct {
 	T string // token type constant
 }
 
+// TokensInterface ...
+type TokensInterface interface {
+	Next() (Token, error)
+	Lookup() (Token, error)
+}
+
+// Tokens ...
+type Tokens struct {
+	list  []Token
+	index int
+}
+
 // GetTokens parses file and returns a list of Tokens
-func GetTokens(sourceFile string) []Token {
+func GetTokens(sourceFile string) *Tokens {
 	p := parser.New(sourceFile)
 	tokenList := make([]Token, 0)
 	t := "" // current token
@@ -89,7 +102,7 @@ func GetTokens(sourceFile string) []Token {
 				newChar = chars[i]
 			}
 
-			if _, in := keywords[t]; in {
+			if _, in := keywords[t]; in && !validators.IsIdentifier(string(newChar)) {
 				// is keyword
 				tokenList = append(tokenList, Token{t, TokenTypeKeyword})
 				t = ""
@@ -125,17 +138,39 @@ func GetTokens(sourceFile string) []Token {
 		}
 	}
 
-	return tokenList
+	return &Tokens{tokenList, -1}
 }
 
 // ToXML generates tokens xml
-func ToXML(tList []Token) string {
+func ToXML(tList *Tokens) string {
 	eol := "\n"
 	tokens := ""
 
-	for _, t := range tList {
+	for {
+		t, err := tList.Next()
+		if err != nil {
+			break
+		}
 		tokens += utils.ToXMLTag(t.T, " "+t.S+" ") + eol
 	}
 
 	return "<tokens>" + eol + tokens + "</tokens>"
+}
+
+// Next increments token index, returns next token
+func (t *Tokens) Next() (Token, error) {
+	t.index++
+	if t.index >= len(t.list) {
+		// t.index--
+		return t.list[0], errors.New("no more tokens")
+	}
+	return t.list[t.index], nil
+}
+
+// Lookup returns current token index + i Token
+func (t *Tokens) Lookup(i int) (Token, error) {
+	if t.index+i >= len(t.list) {
+		return t.list[t.index], errors.New("token list length exceeded")
+	}
+	return t.list[t.index+i], nil
 }
