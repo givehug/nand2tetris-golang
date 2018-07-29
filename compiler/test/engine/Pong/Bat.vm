@@ -1,3 +1,4 @@
+
 // Class Bat
 
 // Subroutine constructor new
@@ -30,6 +31,8 @@ pop this 4
 push pointer 0
 call Bat.show 1
 pop temp 0
+
+// Return statement
 push pointer 0
 return
 
@@ -42,6 +45,8 @@ pop pointer 0
 push pointer 0
 call Memory.deAlloc 1
 pop temp 0
+
+// Return statement
 push constant 0
 return
 
@@ -60,6 +65,8 @@ pop temp 0
 push pointer 0
 call Bat.draw 1
 pop temp 0
+
+// Return statement
 push constant 0
 return
 
@@ -77,6 +84,8 @@ pop temp 0
 push pointer 0
 call Bat.draw 1
 pop temp 0
+
+// Return statement
 push constant 0
 return
 
@@ -96,6 +105,8 @@ push this 3
 add
 call Screen.drawRectangle 4
 pop temp 0
+
+// Return statement
 push constant 0
 return
 
@@ -107,6 +118,8 @@ pop pointer 0
 // Let statement
 push argument 1
 pop this 4
+
+// Return statement
 push constant 0
 return
 
@@ -114,6 +127,8 @@ return
 function Bat.getLeft 0
 push argument 0
 pop pointer 0
+
+// Return statement
 push this 0
 return
 
@@ -121,6 +136,8 @@ return
 function Bat.getRight 0
 push argument 0
 pop pointer 0
+
+// Return statement
 push this 0
 push this 2
 add
@@ -144,6 +161,8 @@ pop this 2
 push pointer 0
 call Bat.show 1
 pop temp 0
+
+// Return statement
 push constant 0
 return
 
@@ -289,5 +308,7 @@ add
 call Screen.drawRectangle 4
 pop temp 0
 label Bat.if.1.L2
+
+// Return statement
 push constant 0
 return

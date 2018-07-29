@@ -1,8 +1,6 @@
 package engine
 
-// TODO
-// - vld.IsIdentifier -> t.T == tokenizer.TokenTypeIdentifier ?
-// - check token type always, because symbols/identifiers etc may be strings (pass type to eat) ?
+// TODO check token type always, symbols/identifiers etc could be strings (pass type to eat) ?
 
 import (
 	"nand2tetris-golang/common/utils"
@@ -29,6 +27,7 @@ type Engine struct {
 // Compile compiles jack to vm file
 func Compile(inFile, outFile string) {
 	file, err := os.Create(outFile)                  // create out .vm file
+	defer file.Close()                               // close file before return
 	utils.HandleErr(err)                             // handle possible error
 	tokens := tokenizer.GetTokens(inFile)            // get tokens list
 	table := st.New()                                // create symbol table
@@ -38,15 +37,13 @@ func Compile(inFile, outFile string) {
 	// tree := analyzer.CompileClass(&tokens) // create parse tree
 	// fmt.Println(tokenizer.ToXML(tokens)) // print tokens XML
 	// fmt.Println(analyzer.ToXML(tree, 0)) // print parsed tree XML
-
-	file.Close()
 }
 
 func (e *Engine) compileClass() {
 	// Grammar: 'class' className '{' classVarDec* subroutineDec* '}'
 	e.eat(vld.Identity("class"))                     // 'class'
-	e.eat(vld.IsIdentifier)                          // className
-	e.className = e.getToken(0).S                    // save class name
+	e.className = e.currentToken().S                 // save class name
+	e.eatType(tokenizer.TokenTypeIdentifier)         // className
 	vm.WriteComment(e.outFile, "Class "+e.className) // write comment
 	e.eat(vld.Identity("{"))                         // '{'
 	e.compileClassVarDec()                           // classVarDec*
@@ -56,16 +53,16 @@ func (e *Engine) compileClass() {
 
 func (e *Engine) compileClassVarDec() {
 	// Grammar: ('static' | 'field') type varName (',' varName)* ';'
-	if !vld.OneOf("static", "field")(e.getToken(1).S) {
+	if !vld.OneOf("static", "field")(e.currentToken().S) {
 		return // no more var decs
 	}
 	kind := e.eat(vld.OneOf("static", "field")) // ('static' | 'field')
 	varType := e.compileType(false)             // var type
 	// varName (',' varName)*
 	for {
-		name := e.eat(vld.IsIdentifier)     // var name
-		e.table.Define(name, varType, kind) // add to symbol table
-		if !vld.Identity(",")(e.getToken(1).S) {
+		name := e.eatType(tokenizer.TokenTypeIdentifier) // var name
+		e.table.Define(name, varType, kind)              // add to symbol table
+		if e.currentToken().S != "," {
 			break // no more identifiers
 		}
 		e.eat(vld.Identity(",")) // ','
@@ -80,13 +77,13 @@ func (e *Engine) compileClassSubroutineDec() {
 	e.table.StartSubroutine()
 	e.subroutineKind = e.eat(vld.OneOf("constructor", "function", "method")) // ("constructor" | "function" | "method")
 	e.compileType(true)                                                      // ('void' | type)
-	e.subroutineName = e.eat(vld.IsIdentifier)                               // subroutineName
+	e.subroutineName = e.eatType(tokenizer.TokenTypeIdentifier)              // subroutineName
 	e.eat(vld.Identity("("))                                                 // '('
 	e.compileParameterList()                                                 // parameterList
 	e.eat(vld.Identity(")"))                                                 // ')'
 	e.compileSubroutineBody()                                                // subroutineBody
 	// check if has more subroutines
-	if e.getToken(1).S != "}" {
+	if e.currentToken().S != "}" {
 		e.compileClassSubroutineDec()
 	}
 }
@@ -98,16 +95,16 @@ func (e *Engine) compileParameterList() {
 		e.table.Define("this", e.className, mapping.IdentifierTypeArg)
 	}
 	// check if has any params
-	if e.getToken(1).S == ")" {
+	if e.currentToken().S == ")" {
 		return
 	}
 	for {
 		// add argument to symbol table
-		varType := e.compileType(false)    // type
-		varName := e.eat(vld.IsIdentifier) // varName
+		varType := e.compileType(false)                     // type
+		varName := e.eatType(tokenizer.TokenTypeIdentifier) // varName
 		e.table.Define(varName, varType, mapping.IdentifierTypeArg)
 		// check if has more params
-		if e.getToken(1).S == "," {
+		if e.currentToken().S == "," {
 			e.eat(vld.Identity(",")) // ','
 		} else {
 			break
@@ -116,14 +113,14 @@ func (e *Engine) compileParameterList() {
 }
 
 func (e *Engine) compileType(includeVoid bool) string {
-	if e.getToken(1).T == tokenizer.TokenTypeKeyword {
+	if e.currentToken().T == tokenizer.TokenTypeKeyword {
 		ops := []string{"int", "char", "boolean"}
 		if includeVoid {
 			ops = append(ops, "void")
 		}
 		return e.eat(vld.OneOf(ops...))
 	}
-	return e.eat(vld.IsIdentifier)
+	return e.eatType(tokenizer.TokenTypeIdentifier)
 }
 
 func (e *Engine) compileSubroutineBody() {
@@ -131,7 +128,7 @@ func (e *Engine) compileSubroutineBody() {
 	e.eat(vld.Identity("{")) // '{'
 	// varDec*
 	for {
-		if e.getToken(1).S != "var" {
+		if e.currentToken().S != "var" {
 			break // no more var decs
 		}
 		e.compileVarDec()
@@ -148,7 +145,6 @@ func (e *Engine) compileSubroutineBody() {
 		vm.WritePush(e.outFile, mapping.SegmentARG, 0)
 		vm.WritePop(e.outFile, mapping.SegmentPOINT, 0)
 	}
-	// TODO: temp buffer ?
 	e.compileStatements()    // statements
 	e.eat(vld.Identity("}")) // '}'
 }
@@ -159,9 +155,9 @@ func (e *Engine) compileVarDec() {
 	varType := e.compileType(false) // var type
 	// varName (',' varName)*
 	for {
-		varName := e.eat(vld.IsIdentifier) // varName
+		varName := e.eatType(tokenizer.TokenTypeIdentifier) // varName
 		e.table.Define(varName, varType, mapping.IdentifierTypeVar)
-		if e.getToken(1).S != "," {
+		if e.currentToken().S != "," {
 			break // no more var identifiers
 		}
 		e.eat(vld.Identity(",")) // ','
@@ -173,7 +169,7 @@ func (e *Engine) compileStatements() {
 	// Grammar: letStatement | ifStatement | whileStatement | doStatement | return Statement
 For:
 	for {
-		switch e.getToken(1).S {
+		switch e.currentToken().S {
 		case "let":
 			e.compileLetStatement()
 		case "if":
@@ -193,6 +189,7 @@ For:
 func (e *Engine) compileDoStatement() {
 	// Grammar: 'do' subroutineCall ';'
 	vm.WriteComment(e.outFile, "Do statement")
+
 	e.eat(vld.Identity("do")) // 'do'
 	e.compileSubroutineCall() // subroutineCall
 	e.eat(vld.Identity(";"))  // ';'
@@ -201,8 +198,9 @@ func (e *Engine) compileDoStatement() {
 func (e *Engine) compileReturnStatement() {
 	// Grammar: 'return' expression? ';'
 	vm.WriteComment(e.outFile, "Return statement")
+
 	e.eat(vld.Identity("return")) // 'return'
-	if e.getToken(1).S != ";" {
+	if e.currentToken().S != ";" {
 		e.compileExpression() // non void
 	} else {
 		vm.WritePush(e.outFile, mapping.SegmentCONST, 0) // void
@@ -216,7 +214,7 @@ func (e *Engine) compileWhileStatement() {
 	vm.WriteComment(e.outFile, "While statement")
 	e.labelCounter++
 
-	label := e.className + "." + "while." + strconv.Itoa(e.labelCounter) + ".L1"
+	label := e.className + ".while." + strconv.Itoa(e.labelCounter) + ".L1"
 	vm.WriteLabel(e.outFile, label)
 
 	e.eat(vld.Identity("while")) // 'while'
@@ -225,7 +223,7 @@ func (e *Engine) compileWhileStatement() {
 	e.eat(vld.Identity(")"))     // ')'
 
 	vm.WriteArithmetic(e.outFile, mapping.ArithmCmdNOT)
-	gotoLabel := e.className + "." + "while." + strconv.Itoa(e.labelCounter) + ".L2"
+	gotoLabel := e.className + ".while." + strconv.Itoa(e.labelCounter) + ".L2"
 	vm.WriteIf(e.outFile, gotoLabel)
 
 	e.eat(vld.Identity("{")) // '{'
@@ -248,18 +246,18 @@ func (e *Engine) compileIfStatement() {
 	e.eat(vld.Identity(")"))  // ')'
 
 	vm.WriteArithmetic(e.outFile, mapping.ArithmCmdNOT)
-	label := e.className + "." + "if." + strconv.Itoa(e.labelCounter) + ".L1"
+	label := e.className + ".if." + strconv.Itoa(e.labelCounter) + ".L1"
 	vm.WriteIf(e.outFile, label)
 
 	e.eat(vld.Identity("{")) // '{'
-	gotoLabel := e.className + "." + "if." + strconv.Itoa(e.labelCounter) + ".L2"
+	gotoLabel := e.className + ".if." + strconv.Itoa(e.labelCounter) + ".L2"
 	e.compileStatements() // statements
 	vm.WriteGoto(e.outFile, gotoLabel)
 	vm.WriteLabel(e.outFile, label)
 	e.eat(vld.Identity("}")) // '}'
 
 	// ('else' '{' statements '}')?
-	if e.getToken(1).S == "else" {
+	if e.currentToken().S == "else" {
 		vm.WriteComment(e.outFile, "Else statement")
 		e.eat(vld.Identity("else")) // 'else'
 		e.eat(vld.Identity("{"))    // '{'
@@ -273,13 +271,13 @@ func (e *Engine) compileLetStatement() {
 	// Grammar: 'let' varName ('['expression']')? '=' expression ';'
 	vm.WriteComment(e.outFile, "Let statement")
 
-	e.eat(vld.Identity("let"))            // 'let'
-	identifier := e.eat(vld.IsIdentifier) // varName
+	e.eat(vld.Identity("let"))                             // 'let'
+	identifier := e.eatType(tokenizer.TokenTypeIdentifier) // varName
 	segment := e.table.KindOf(identifier)
 	index := e.table.IndexOf(identifier)
 
 	// ('['expression']')?
-	isArray := e.getToken(1).S == "["
+	isArray := e.currentToken().S == "["
 	if isArray {
 		e.eat(vld.Identity("[")) // '['
 		e.compileExpression()    // 'expression'
@@ -307,23 +305,22 @@ func (e *Engine) compileSubroutineCall() {
 	// (className|varName) '.' subroutineName '(' expressionList ')'
 
 	// subroutineName | (className|varName)
-	identifier := e.eat(vld.IsIdentifier)
+	identifier := e.eatType(tokenizer.TokenTypeIdentifier)
 	nArgs := 0
 	funcName := ""
 	className := identifier
 	identifierType := ""
 
-	if e.getToken(1).S == "." {
+	if e.currentToken().S == "." {
 		// '.' subroutineName
-		e.eat(vld.Identity("."))           // '.'
-		funcName = e.eat(vld.IsIdentifier) // subroutineName
+		e.eat(vld.Identity("."))                            // '.'
+		funcName = e.eatType(tokenizer.TokenTypeIdentifier) // subroutineName
 		identifierType = e.table.TypeOf(identifier)
 	} else {
 		className = e.className
 		funcName = identifier
 		nArgs++
 		vm.WritePush(e.outFile, mapping.SegmentPOINT, 0)
-		identifierType = ""
 	}
 
 	if identifierType != "" {
@@ -348,10 +345,10 @@ func (e *Engine) compileExpression() {
 	commands := make([]string, 0)
 	for {
 		e.compileTerm()
-		if !vld.OneOf(ops...)(e.getToken(1).S) {
+		if !vld.OneOf(ops...)(e.currentToken().S) {
 			break
 		}
-		cmd, _ := mapping.ArithmSymbols[e.getToken(1).S]
+		cmd, _ := mapping.ArithmSymbols[e.currentToken().S]
 		commands = append(commands, cmd)
 		e.eat(vld.OneOf(ops...))
 	}
@@ -365,11 +362,11 @@ func (e *Engine) compileExpressionList() (nArgs int) {
 	nArgs = 0
 	for {
 		// TODO verify this
-		if e.getToken(1).S == ")" {
+		if e.currentToken().S == ")" {
 			break
 		}
 		e.compileExpression() // expression
-		if e.getToken(1).S == "," {
+		if e.currentToken().S == "," {
 			e.eat(vld.Identity(",")) // ','
 		}
 		nArgs++
@@ -380,8 +377,8 @@ func (e *Engine) compileExpressionList() (nArgs int) {
 func (e *Engine) compileTerm() {
 	// Grammar: integetConstant | stringConstant | keywordConstant | varName |
 	// varName '['expression']' | subroutineCall | '('expression')' | unaryOp term
-	next := e.getToken(1)
-	afterNext := e.getToken(2)
+	next := e.currentToken()
+	afterNext := e.nextToken()
 
 	if next.T == tokenizer.TokenTypeIntConstant {
 		// integetConstant
@@ -427,10 +424,11 @@ func (e *Engine) compileTerm() {
 		e.compileTerm()
 		vm.WriteArithmetic(e.outFile, mapping.ArithmCmdNOT)
 	} else if afterNext.T == tokenizer.TokenTypeSymbol && afterNext.S == "." {
+		// class subroutine call
 		// Grammar: (className|varName) '.' subroutineName '(' expressionList ')'
-		identifier := e.eat(vld.IsIdentifier)
+		identifier := e.eatType(tokenizer.TokenTypeIdentifier)
 		e.eat(vld.Identity(".")) // '.'
-		funcName := e.eat(vld.IsIdentifier)
+		funcName := e.eatType(tokenizer.TokenTypeIdentifier)
 		nArgs := 0
 		className := identifier
 		identifierType := e.table.TypeOf(identifier)
@@ -444,16 +442,16 @@ func (e *Engine) compileTerm() {
 		e.eat(vld.Identity("("))           // '('
 		nArgs += e.compileExpressionList() // expressionList
 		e.eat(vld.Identity(")"))           // ')'
-		// fmt.Println(123, className, funcName, nArgs)
 		vm.WriteCall(e.outFile, className, funcName, nArgs)
 	} else {
-		identifier := e.eat(vld.IsIdentifier) // varName
+		// other ?
+		identifier := e.eatType(tokenizer.TokenTypeIdentifier) // varName
 		index := e.table.IndexOf(identifier)
 		segment := e.table.KindOf(identifier)
 		vm.WritePush(e.outFile, segment, index)
 
 		// '['expression']' ?
-		next := e.getToken(1)
+		next := e.currentToken()
 		if next.T == tokenizer.TokenTypeSymbol && next.S == "[" {
 			e.eat(vld.Identity("["))
 			e.compileExpression()
@@ -465,23 +463,46 @@ func (e *Engine) compileTerm() {
 	}
 }
 
-// validate next token and return its value
+// validate next token value and return its value
 func (e *Engine) eat(rules ...vld.Rule) string {
-	nextToken, err := e.tokens.Next()
+	nextToken, err := e.tokens.Lookup(0)
 	if err != nil {
 		panic("No more tokens")
 	}
 	for _, r := range rules {
 		if r(nextToken.S) {
+			e.tokens.Next()
 			return nextToken.S
 		}
 	}
 	panic("Rule not met for: " + nextToken.S)
 }
 
-// get token by index
-func (e *Engine) getToken(ind int) tokenizer.Token {
-	token, err := e.tokens.Lookup(ind)
+// validate next token type and return its value
+func (e *Engine) eatType(tType string) string {
+	nextToken, err := e.tokens.Lookup(0)
+	if err != nil {
+		panic("No more tokens")
+	}
+	if nextToken.T == tType {
+		e.tokens.Next()
+		return nextToken.S
+	}
+	panic("Wrong token type: " + nextToken.S + " " + nextToken.T + ", expected: " + tType)
+}
+
+// get current token
+func (e *Engine) currentToken() tokenizer.Token {
+	token, err := e.tokens.Lookup(0)
+	if err != nil {
+		panic("No token at this position")
+	}
+	return token
+}
+
+// get next token
+func (e *Engine) nextToken() tokenizer.Token {
+	token, err := e.tokens.Lookup(1)
 	if err != nil {
 		panic("No token at this position")
 	}

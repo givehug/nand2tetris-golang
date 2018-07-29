@@ -1,3 +1,4 @@
+
 // Class Main
 
 // Subroutine function main
@@ -20,5 +21,7 @@ pop temp 0
 push local 0
 call PongGame.dispose 1
 pop temp 0
+
+// Return statement
 push constant 0
 return

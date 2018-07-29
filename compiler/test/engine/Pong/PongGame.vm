@@ -1,3 +1,4 @@
+
 // Class PongGame
 
 // Subroutine constructor new
@@ -90,6 +91,8 @@ pop this 2
 // Let statement
 push constant 0
 pop this 5
+
+// Return statement
 push pointer 0
 return
 
@@ -112,6 +115,8 @@ pop temp 0
 push pointer 0
 call Memory.deAlloc 1
 pop temp 0
+
+// Return statement
 push constant 0
 return
 
@@ -121,11 +126,15 @@ function PongGame.newInstance 0
 // Let statement
 call PongGame.new 0
 pop static 0
+
+// Return statement
 push constant 0
 return
 
 // Subroutine function getInstance
 function PongGame.getInstance 0
+
+// Return statement
 push static 0
 return
 
@@ -296,6 +305,8 @@ pop temp 0
 goto PongGame.if.7.L2
 label PongGame.if.7.L1
 label PongGame.if.7.L2
+
+// Return statement
 push constant 0
 return
 
@@ -450,5 +461,7 @@ pop temp 0
 goto PongGame.if.8.L2
 label PongGame.if.8.L1
 label PongGame.if.8.L2
+
+// Return statement
 push constant 0
 return

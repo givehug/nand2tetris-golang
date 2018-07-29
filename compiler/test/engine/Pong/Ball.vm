@@ -1,3 +1,4 @@
+
 // Class Ball
 
 // Subroutine constructor new
@@ -42,6 +43,8 @@ pop this 14
 push pointer 0
 call Ball.show 1
 pop temp 0
+
+// Return statement
 push pointer 0
 return
 
@@ -54,6 +57,8 @@ pop pointer 0
 push pointer 0
 call Memory.deAlloc 1
 pop temp 0
+
+// Return statement
 push constant 0
 return
 
@@ -72,6 +77,8 @@ pop temp 0
 push pointer 0
 call Ball.draw 1
 pop temp 0
+
+// Return statement
 push constant 0
 return
 
@@ -89,6 +96,8 @@ pop temp 0
 push pointer 0
 call Ball.draw 1
 pop temp 0
+
+// Return statement
 push constant 0
 return
 
@@ -108,6 +117,8 @@ push constant 5
 add
 call Screen.drawRectangle 4
 pop temp 0
+
+// Return statement
 push constant 0
 return
 
@@ -115,6 +126,8 @@ return
 function Ball.getLeft 0
 push argument 0
 pop pointer 0
+
+// Return statement
 push this 0
 return
 
@@ -122,6 +135,8 @@ return
 function Ball.getRight 0
 push argument 0
 pop pointer 0
+
+// Return statement
 push this 0
 push constant 5
 add
@@ -227,6 +242,8 @@ push local 0
 sub
 call Math.multiply 2
 pop this 6
+
+// Return statement
 push constant 0
 return
 
@@ -452,6 +469,8 @@ label Ball.if.12.L2
 push pointer 0
 call Ball.show 1
 pop temp 0
+
+// Return statement
 push this 14
 return
 
@@ -646,5 +665,7 @@ push local 0
 push local 1
 call Ball.setDestination 3
 pop temp 0
+
+// Return statement
 push constant 0
 return

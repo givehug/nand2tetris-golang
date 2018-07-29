@@ -1,3 +1,4 @@
+
 // Class Main
 
 // Subroutine function main
@@ -741,11 +742,15 @@ pop temp 0
 // Do statement
 call Output.println 0
 pop temp 0
+
+// Return statement
 push constant 0
 return
 
 // Subroutine function double
 function Main.double 0
+
+// Return statement
 push argument 0
 push constant 2
 call Math.multiply 2
@@ -780,5 +785,7 @@ push temp 0
 pop that 0
 goto Main.while.2.L1
 label Main.while.2.L2
+
+// Return statement
 push constant 0
 return

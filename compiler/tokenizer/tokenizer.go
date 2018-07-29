@@ -138,7 +138,7 @@ func GetTokens(sourceFile string) *Tokens {
 		}
 	}
 
-	return &Tokens{tokenList, -1}
+	return &Tokens{tokenList, 0}
 }
 
 // ToXML generates tokens xml
