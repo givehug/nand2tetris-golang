@@ -161,7 +161,6 @@ func ToXML(tList *Tokens) string {
 func (t *Tokens) Next() (Token, error) {
 	t.index++
 	if t.index >= len(t.list) {
-		// t.index--
 		return t.list[0], errors.New("no more tokens")
 	}
 	return t.list[t.index], nil
