@@ -1,8 +1,6 @@
 package analyzer
 
-// TODO
-// - vld.IsIdentifier -> t.T == tokenizer.TokenTypeIdentifier ?
-// - check token type always, because symbols/identifiers etc may be strings (pass type to eat) ?
+// TODO check token type always, symbols/identifiers etc could be strings (pass type to eat) ?
 
 import (
 	pt "nand2tetris-golang/common/parsetree"
@@ -38,14 +36,13 @@ const (
 
 // Analyzer type
 type Analyzer struct {
-	ti int                // current token index
-	tl *[]tokenizer.Token // token list
+	tokens *tokenizer.Tokens
 }
 
 // CompileClass accepts token list and returns parse tree
-func CompileClass(tl *[]tokenizer.Token) *pt.ParseTree {
+func CompileClass(tl *tokenizer.Tokens) *pt.ParseTree {
 	// create analyzer struct
-	a := &Analyzer{-1, tl}
+	a := &Analyzer{tl}
 
 	// Grammar: 'class' className '{' classVarDec* subroutineDec* '}'
 	tree := pt.New(RuleTypeClass, "")
@@ -53,19 +50,19 @@ func CompileClass(tl *[]tokenizer.Token) *pt.ParseTree {
 	// 'class'
 	tree.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.Identity("class"))))
 	// className
-	tree.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+	tree.AddLeaves(pt.New(RuleTypeIdentifier, a.eatType(tokenizer.TokenTypeIdentifier)))
 	// '{'
 	tree.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
 	// classVarDec*
 	for {
-		if !vld.OneOf("static", "field")(a.getNextToken().S) {
+		if !vld.OneOf("static", "field")(a.getCurrentToken().S) {
 			break // no more var decs
 		}
 		addIfHasChildren(tree, a.compileClassVarDec())
 	}
 	// subroutineDec*
 	for {
-		if !vld.OneOf("constructor", "function", "method")(a.getNextToken().S) {
+		if !vld.OneOf("constructor", "function", "method")(a.getCurrentToken().S) {
 			break // no more subroutines
 		}
 		addIfHasChildren(tree, a.compileClassSubroutineDec())
@@ -87,8 +84,8 @@ func (a *Analyzer) compileClassVarDec() *pt.ParseTree {
 	// varName (',' varName)*
 	for {
 		// varName
-		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
-		if !vld.Identity(",")(a.getNextToken().S) {
+		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eatType(tokenizer.TokenTypeIdentifier)))
+		if !vld.Identity(",")(a.getCurrentToken().S) {
 			break // no more identifiers
 		}
 		// ','
@@ -110,7 +107,7 @@ func (a *Analyzer) compileClassSubroutineDec() *pt.ParseTree {
 	// ('void' | type)
 	a.compileType(leaf, true)
 	// subroutineName
-	leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+	leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eatType(tokenizer.TokenTypeIdentifier)))
 	// '('
 	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("("))))
 	// parameterList
@@ -129,13 +126,13 @@ func (a *Analyzer) compileParameterList() *pt.ParseTree {
 
 	// no parameters
 	// TODO: type can be className
-	if vld.OneOf("int", "char", "boolean")(a.getNextToken().S) {
+	if vld.OneOf("int", "char", "boolean")(a.getCurrentToken().S) {
 		for {
 			// type
 			a.compileType(leaf, false)
 			// varName
-			leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
-			if !vld.Identity(",")(a.getNextToken().S) {
+			leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eatType(tokenizer.TokenTypeIdentifier)))
+			if !vld.Identity(",")(a.getCurrentToken().S) {
 				break // no more parameters
 			}
 			// ','
@@ -147,14 +144,14 @@ func (a *Analyzer) compileParameterList() *pt.ParseTree {
 }
 
 func (a *Analyzer) compileType(leaf *pt.ParseTree, includeVoid bool) {
-	if a.getNextToken().T == tokenizer.TokenTypeKeyword {
+	if a.getCurrentToken().T == tokenizer.TokenTypeKeyword {
 		ops := []string{"int", "char", "boolean"}
 		if includeVoid {
 			ops = append(ops, "void")
 		}
 		leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.OneOf(ops...))))
 	} else {
-		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eatType(tokenizer.TokenTypeIdentifier)))
 	}
 }
 
@@ -166,7 +163,7 @@ func (a *Analyzer) compileSubroutineBody() *pt.ParseTree {
 	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("{"))))
 	// varDec*
 	for {
-		if !vld.Identity("var")(a.getNextToken().S) {
+		if !vld.Identity("var")(a.getCurrentToken().S) {
 			break // no more var decs
 		}
 		leaf.AddLeaves(a.compileVarDec())
@@ -190,8 +187,8 @@ func (a *Analyzer) compileVarDec() *pt.ParseTree {
 	// varName (',' varName)*
 	for {
 		// varName
-		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
-		if !vld.Identity(",")(a.getNextToken().S) {
+		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eatType(tokenizer.TokenTypeIdentifier)))
+		if !vld.Identity(",")(a.getCurrentToken().S) {
 			break // no more var identifiers
 		}
 		// ','
@@ -208,7 +205,7 @@ func (a *Analyzer) compileStatements() *pt.ParseTree {
 	leaf := pt.New(RuleTypeStatements, "")
 
 	for {
-		next := a.getNextToken()
+		next := a.getCurrentToken()
 		if !(next.T == tokenizer.TokenTypeKeyword && vld.OneOf("let", "if", "while", "do", "return")(next.S)) {
 			break // no more var decs
 		}
@@ -250,7 +247,7 @@ func (a *Analyzer) compileReturnStatement() *pt.ParseTree {
 	// 'return'
 	leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.Identity("return"))))
 	// expression?
-	if !vld.Identity(";")(a.getNextToken().S) {
+	if !vld.Identity(";")(a.getCurrentToken().S) {
 		leaf.AddLeaves(a.compileExpression())
 	}
 	// ';'
@@ -301,7 +298,7 @@ func (a *Analyzer) compileIfStatement() *pt.ParseTree {
 	// '}'
 	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("}"))))
 	// ('else' '{' statements '}')?
-	if vld.Identity("else")(a.getNextToken().S) {
+	if vld.Identity("else")(a.getCurrentToken().S) {
 		// 'else'
 		leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.Identity("else"))))
 		// '{'
@@ -322,9 +319,9 @@ func (a *Analyzer) compileLetStatement() *pt.ParseTree {
 	// 'let'
 	leaf.AddLeaves(pt.New(RuleTypeKeyword, a.eat(vld.Identity("let"))))
 	// varName
-	leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+	leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eatType(tokenizer.TokenTypeIdentifier)))
 	// ('['expression']')?
-	if vld.Identity("[")(a.getNextToken().S) {
+	if vld.Identity("[")(a.getCurrentToken().S) {
 		// '['
 		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("["))))
 		// 'expression'
@@ -347,13 +344,13 @@ func (a *Analyzer) compileSubroutineCall(leaf *pt.ParseTree) {
 	// (className|varName) '.' subroutineName '(' expressionList ')'
 
 	// subroutineName | (className|varName)
-	leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
-	if vld.Identity(".")(a.getNextToken().S) {
+	leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eatType(tokenizer.TokenTypeIdentifier)))
+	if vld.Identity(".")(a.getCurrentToken().S) {
 		// '.' subroutineName
 		// '.'
 		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("."))))
 		// subroutineName
-		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eatType(tokenizer.TokenTypeIdentifier)))
 	}
 	// '('
 	leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("("))))
@@ -370,7 +367,7 @@ func (a *Analyzer) compileExpression() *pt.ParseTree {
 
 	for {
 		leaf.AddLeaves(a.compileTerm())
-		if !vld.OneOf(ops...)(a.getNextToken().S) {
+		if !vld.OneOf(ops...)(a.getCurrentToken().S) {
 			break
 		}
 		leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.OneOf(ops...))))
@@ -385,12 +382,12 @@ func (a *Analyzer) compileExpressionList() *pt.ParseTree {
 
 	for {
 		// TODO verify this
-		if vld.Identity(")")(a.getNextToken().S) {
+		if vld.Identity(")")(a.getCurrentToken().S) {
 			break
 		}
 		// expression
 		leaf.AddLeaves(a.compileExpression())
-		if vld.Identity(",")(a.getNextToken().S) {
+		if vld.Identity(",")(a.getCurrentToken().S) {
 			// ','
 			leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity(","))))
 		}
@@ -403,8 +400,8 @@ func (a *Analyzer) compileTerm() *pt.ParseTree {
 	// Grammar: integetConstant | stringConstant | keywordConstant | varName |
 	// varName '['expression']' | subroutineCall | '('expression')' | unaryOp term
 	leaf := pt.New(RuleTypeTerm, "")
-	next := a.getNextToken()
-	afterNext := a.getTokenAfterNext()
+	next := a.getCurrentToken()
+	afterNext := a.getNextToken()
 
 	if next.T == tokenizer.TokenTypeIntConstant {
 		// integetConstant
@@ -429,9 +426,9 @@ func (a *Analyzer) compileTerm() *pt.ParseTree {
 		a.compileSubroutineCall(leaf)
 	} else {
 		// varName
-		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eat(vld.IsIdentifier)))
+		leaf.AddLeaves(pt.New(RuleTypeIdentifier, a.eatType(tokenizer.TokenTypeIdentifier)))
 		// '['expression']' ?
-		next := a.getNextToken()
+		next := a.getCurrentToken()
 		if next.T == tokenizer.TokenTypeSymbol && next.S == "[" {
 			leaf.AddLeaves(pt.New(RuleTypeSymbol, a.eat(vld.Identity("["))))
 			leaf.AddLeaves(a.compileExpression())
@@ -443,31 +440,40 @@ func (a *Analyzer) compileTerm() *pt.ParseTree {
 }
 
 func (a *Analyzer) getCurrentToken() tokenizer.Token {
-	t := *a.tl
-	return t[a.ti]
+	return a.getToken(0)
 }
-
 func (a *Analyzer) getNextToken() tokenizer.Token {
-	t := *a.tl
-	return t[a.ti+1]
+	return a.getToken(1)
 }
-
-func (a *Analyzer) getTokenAfterNext() tokenizer.Token {
-	t := *a.tl
-	return t[a.ti+2]
+func (a *Analyzer) getToken(ind int) tokenizer.Token {
+	token, err := a.tokens.Lookup(ind)
+	if err != nil {
+		panic("No token at this position")
+	}
+	return token
 }
 
 // increment ti, return currentToken if valid, panic if not
 // one of provided rules should pass
 func (a *Analyzer) eat(rules ...vld.Rule) string {
-	a.ti++
 	s := a.getCurrentToken().S
 	for _, r := range rules {
 		if r(s) {
+			a.tokens.Next()
 			return s
 		}
 	}
 	panic("Rule not met for: " + s)
+}
+
+// validate next token type and return its value
+func (a *Analyzer) eatType(tType string) string {
+	currentToken := a.getCurrentToken()
+	if currentToken.T == tType {
+		a.tokens.Next()
+		return currentToken.S
+	}
+	panic("Wrong token type: " + currentToken.S + " " + currentToken.T + ", expected: " + tType)
 }
 
 // add 'leaf' to 'to' as child if 'leaf' has children

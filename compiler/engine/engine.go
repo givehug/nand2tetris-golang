@@ -465,30 +465,30 @@ func (e *Engine) compileTerm() {
 
 // validate next token value and return its value
 func (e *Engine) eat(rules ...vld.Rule) string {
-	nextToken, err := e.tokens.Lookup(0)
+	currentToken, err := e.tokens.Lookup(0)
 	if err != nil {
 		panic("No more tokens")
 	}
 	for _, r := range rules {
-		if r(nextToken.S) {
+		if r(currentToken.S) {
 			e.tokens.Next()
-			return nextToken.S
+			return currentToken.S
 		}
 	}
-	panic("Rule not met for: " + nextToken.S)
+	panic("Rule not met for: " + currentToken.S)
 }
 
 // validate next token type and return its value
 func (e *Engine) eatType(tType string) string {
-	nextToken, err := e.tokens.Lookup(0)
+	currentToken, err := e.tokens.Lookup(0)
 	if err != nil {
 		panic("No more tokens")
 	}
-	if nextToken.T == tType {
+	if currentToken.T == tType {
 		e.tokens.Next()
-		return nextToken.S
+		return currentToken.S
 	}
-	panic("Wrong token type: " + nextToken.S + " " + nextToken.T + ", expected: " + tType)
+	panic("Wrong token type: " + currentToken.S + " " + currentToken.T + ", expected: " + tType)
 }
 
 // get current token
