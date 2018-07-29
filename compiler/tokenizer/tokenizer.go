@@ -147,11 +147,12 @@ func ToXML(tList *Tokens) string {
 	tokens := ""
 
 	for {
-		t, err := tList.Next()
+		t, err := tList.Lookup(0)
 		if err != nil {
 			break
 		}
 		tokens += utils.ToXMLTag(t.T, " "+t.S+" ") + eol
+		tList.Next()
 	}
 
 	return "<tokens>" + eol + tokens + "</tokens>"
@@ -169,7 +170,7 @@ func (t *Tokens) Next() (Token, error) {
 // Lookup returns current token index + i Token
 func (t *Tokens) Lookup(i int) (Token, error) {
 	if t.index+i >= len(t.list) {
-		return t.list[t.index], errors.New("token list length exceeded")
+		return t.list[0], errors.New("token list length exceeded")
 	}
 	return t.list[t.index+i], nil
 }

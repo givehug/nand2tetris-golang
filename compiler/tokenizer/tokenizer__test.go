@@ -8,13 +8,13 @@ import (
 
 func TestTokenizerToXML(t *testing.T) {
 	files := []string{
-		"../test/ArrayTest/Main",
-		"../test/ExpressionLessSquare/Main",
-		"../test/ExpressionLessSquare/Square",
-		"../test/ExpressionLessSquare/SquareGame",
-		"../test/Square/Main",
-		"../test/Square/Square",
-		"../test/Square/SquareGame",
+		"../test/analyzer/ArrayTest/Main",
+		"../test/analyzer/ExpressionLessSquare/Main",
+		"../test/analyzer/ExpressionLessSquare/Square",
+		"../test/analyzer/ExpressionLessSquare/SquareGame",
+		"../test/analyzer/Square/Main",
+		"../test/analyzer/Square/Square",
+		"../test/analyzer/Square/SquareGame",
 	}
 
 	for _, f := range files {
