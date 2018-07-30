@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 const (
@@ -16,15 +17,25 @@ const (
 func main() {
 	// handle directory or jack file path as single cli arg
 	path := os.Args[1]
-	// compile .vm file for each .jack file in dir
+
+	// prep list with all .jack files to compile
 	var files []string
 	if strings.HasSuffix(path, jackFileExt) {
 		files = []string{path}
 	} else {
 		files, _ = filepath.Glob(path + "/*" + jackFileExt)
 	}
+
+	// process each file as separate goroutine
+	wg := sync.WaitGroup{}
+	defer wg.Wait()
 	for _, f := range files {
-		engine.Compile(f, strings.Replace(f, jackFileExt, vmFileExt, 1))
+		wg.Add(1)
+		go func(f string) {
+			defer wg.Done()
+			engine.Compile(f, strings.Replace(f, jackFileExt, vmFileExt, 1))
+		}(f)
 	}
+
 	fmt.Println("done")
 }
